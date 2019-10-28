@@ -3,6 +3,9 @@
 
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+
 int main()
 {
 	GLFWwindow* window;
@@ -29,29 +32,41 @@ int main()
 	char const* VertexShaderSource = R"GLSL(
 		#version 150
 		in vec2 position;
+		in vec2 uv;
+
+		out vec2 frag_uv;
 		void main()
 		{
+			frag_uv = uv;
 			gl_Position = vec4(position, 0.0, 1.0);
 		}
 	)GLSL";
 
 	char const* FragmentShaderSource = R"GLSL(
 		#version 150
+		in vec2 frag_uv;
+
+		uniform sampler2D sprite;
+	
 		out vec4 outColor;
 		void main()
 		{
-			outColor = vec4(1.0, 1.0, 1.0, 1.0);
+			outColor = texture(sprite, frag_uv);
 		}
 	)GLSL";
 
+
+	
 	GLfloat const Vertices[] = {
-		0.0f, 0.5f,
-		0.5f, -0.5f,
-		-0.5f, -0.5f
+		-0.5f, -0.5f, 0.0f, 0.0f,
+		+0.5f, -0.5f, 1.0f, 0.0f,
+		+0.5f, +0.5f, 1.0f, 1.0f,
+		-0.5f, +0.5f, 0.0f, 1.0f
 	};
 
 	GLuint const Elements[] = {
-		0, 1, 2
+		0, 1, 2,
+		2, 3, 0
 	};
 
 	GLuint VAO;
@@ -95,17 +110,41 @@ int main()
 	glLinkProgram(ShaderProgram);
 	glUseProgram(ShaderProgram);
 
+	int width, height, channels;
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char* image = stbi_load("resources/test_block_1x1x1_diffuse.png",
+		&width,
+		&height,
+		&channels,
+		STBI_rgb_alpha);
+	
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	stbi_image_free(image);
+	
 	GLint PositionAttribute = glGetAttribLocation(ShaderProgram, "position");
 	glEnableVertexAttribArray(PositionAttribute);
 
+	GLint UvAttribute = glGetAttribLocation(ShaderProgram, "uv");
+	glEnableVertexAttribArray(UvAttribute);
+	
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glVertexAttribPointer(PositionAttribute, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(PositionAttribute, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
+	glVertexAttribPointer(UvAttribute, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*) (2 * sizeof(float)) );
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	
 	while (!glfwWindowShouldClose(window))
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
