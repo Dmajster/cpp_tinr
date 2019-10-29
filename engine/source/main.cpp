@@ -3,8 +3,8 @@
 
 #include <iostream>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
+#include "SpriteStrip.h"
+#include "asset_loading/ImageLoader.h"
 
 int main()
 {
@@ -13,7 +13,7 @@ int main()
 	if (!glfwInit())
 		return -1;
 
-	window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+	window = glfwCreateWindow(640, 640, "Hello World", NULL, NULL);
 	if (!window)
 	{
 		glfwTerminate();
@@ -58,10 +58,10 @@ int main()
 
 	
 	GLfloat const Vertices[] = {
-		-0.5f, -0.5f, 0.0f, 0.0f,
-		+0.5f, -0.5f, 1.0f, 0.0f,
-		+0.5f, +0.5f, 1.0f, 1.0f,
-		-0.5f, +0.5f, 0.0f, 1.0f
+		-1.0f, -1.0f, 0.0f, 0.0f,
+		+1.0f, -1.0f, 1.0f, 0.0f,
+		+1.0f, +1.0f, 1.0f, 1.0f,
+		-1.0f, +1.0f, 0.0f, 1.0f
 	};
 
 	GLuint const Elements[] = {
@@ -110,22 +110,10 @@ int main()
 	glLinkProgram(ShaderProgram);
 	glUseProgram(ShaderProgram);
 
-	int width, height, channels;
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char* image = stbi_load("resources/test_block_1x1x1_diffuse.png",
-		&width,
-		&height,
-		&channels,
-		STBI_rgb_alpha);
-	
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	const auto test_image = ImageLoader::loadImage("resources/test_block_1x1x1_diffuse.png");
+	const auto test_sprite_strip = SpriteStrip::bind_and_create_sprite_strip(test_image, 256, 256, 24);
 
-	stbi_image_free(image);
+	auto test_sprite_frame = test_sprite_strip.return_frame_by_frame_index(5);
 	
 	GLint PositionAttribute = glGetAttribLocation(ShaderProgram, "position");
 	glEnableVertexAttribArray(PositionAttribute);
