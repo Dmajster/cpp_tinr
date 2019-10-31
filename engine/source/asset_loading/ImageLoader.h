@@ -7,7 +7,7 @@ struct Image
 	unsigned int channels;
 	void* pixel_buffer;
 
-	~Image();
+	~Image() = default;
 };
 
 class ImageLoader

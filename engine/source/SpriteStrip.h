@@ -1,6 +1,7 @@
 #pragma once
-#include "Texture.h"
 #include <cstdlib>
+
+#include "Texture.h"
 #include "asset_loading/ImageLoader.h"
 
 struct Sprite
@@ -11,7 +12,6 @@ struct Sprite
 	float u_end;
 	float v_end;
 };
-
 
 class SpriteStrip
 {
@@ -55,5 +55,4 @@ public:
 	size_t frame_height{};
 	size_t frame_count{};
 	Texture* texture;
-private:
 };

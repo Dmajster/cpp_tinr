@@ -5,5 +5,6 @@ class Mesh
 {
 public:
 	std::vector<float> positions;
-	std::vector<size_t> indices;
+	std::vector<float> uvs;
+	std::vector<unsigned int> indices;
 };

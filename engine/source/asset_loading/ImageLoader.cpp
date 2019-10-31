@@ -5,11 +5,6 @@
 
 #include "ImageLoader.h"
 
-Image::~Image()
-{
-	stbi_image_free(pixel_buffer);
-}
-
 Image ImageLoader::loadImage(const char* t_path)
 {
 	int width, height, channels;

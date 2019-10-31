@@ -145,11 +145,13 @@
   <ItemGroup>
     <ClCompile Include="source\asset_loading\ImageLoader.cpp" />
     <ClCompile Include="source\main.cpp" />
-    <ClCompile Include="source\SpriteStrip.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\asset_loading\ImageLoader.h" />
-    <ClInclude Include="source\mesh.h" />
+    <ClInclude Include="source\Buffer.h" />
+    <ClInclude Include="source\Mesh.h" />
+    <ClInclude Include="source\Renderer.h" />
+    <ClInclude Include="source\SpriteStrip.h" />
     <ClInclude Include="source\Texture.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
