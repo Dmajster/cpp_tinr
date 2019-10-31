@@ -95,45 +95,6 @@ int main()
 		}
 	};
 
-
-	Renderer renderer{};
-	renderer.AddMesh(&quad1);
-	renderer.AddMesh(&quad2);
-
-	GLfloat const Vertices[] = {
-		-1.0f, -0.5f, 0.5f, 0.0f,
-		+0.0f, -0.5f, 0.625f, 0.0f,
-		+0.0f, +0.5f, 0.625f, 0.3f,
-		-1.0f, +0.5f, 0.5f, 0.3f,
-
-		+0.0f, -0.5f, 0.0f, 0.0f,
-		+1.0f, -0.5f, 0.125f, 0.0f,
-		+1.0f, +0.5f, 0.125f, 0.3f,
-		+0.0f, +0.5f, 0.0f, 0.3f
-	};
-
-	GLuint const Elements[] = {
-		0, 1, 2,
-		2, 3, 0,
-		4, 5, 6,
-		6, 7, 4,
-	};
-
-	GLuint VAO;
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-
-	GLuint VBO;
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	GLuint ebo;
-	glGenBuffers(1, &ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Elements), Elements, GL_STATIC_DRAW);
-
 	GLint compiled;
 	const auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertex_shader, 1, &VertexShaderSource, nullptr);
@@ -165,16 +126,15 @@ int main()
 
 	auto test_sprite_frame = test_sprite_strip.return_frame_by_frame_index(5);
 
-	const auto position_attribute = glGetAttribLocation(shader_program, "position");
-	glEnableVertexAttribArray(position_attribute);
 
-	const auto uv_attribute = glGetAttribLocation(shader_program, "uv");
-	glEnableVertexAttribArray(uv_attribute);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glVertexAttribPointer(position_attribute, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
-	glVertexAttribPointer(uv_attribute, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), reinterpret_cast<void*>(2 * sizeof(float)));
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	GLuint VAO;
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
+	Renderer renderer(shader_program);
+	renderer.AddMesh(&quad1);
+	renderer.AddMesh(&quad2);
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
@@ -182,7 +142,10 @@ int main()
 	while (!glfwWindowShouldClose(window))
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, nullptr);
+
+		renderer.DrawMesh(&quad1);
+		renderer.DrawMesh(&quad2);
+		
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -192,8 +155,6 @@ int main()
 	glDeleteShader(fragment_shader);
 	glDeleteShader(vertex_shader);
 
-	glDeleteBuffers(1, &ebo);
-	glDeleteBuffers(1, &VBO);
 	glDeleteVertexArrays(1, &VAO);
 
 	glfwTerminate();
