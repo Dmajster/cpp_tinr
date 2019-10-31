@@ -7,6 +7,12 @@
 #include "asset_loading/ImageLoader.h"
 #include "Mesh.h"
 #include "Renderer.h"
+#include "SpriteQuad.h"
+
+static void error_callback(int error, const char* description)
+{
+	fprintf(stderr, "Error: %s\n", description);
+}
 
 int main()
 {
@@ -14,6 +20,8 @@ int main()
 
 	if (!glfwInit())
 		return -1;
+
+	glfwSetErrorCallback(error_callback);
 
 	window = glfwCreateWindow(640, 640, "Hello World", nullptr, nullptr);
 	if (!window)
@@ -57,44 +65,6 @@ int main()
 		}
 	)GLSL";
 
-	Mesh quad1{
-		{
-			-1.0f, -0.5f,
-			+0.0f, -0.5f,
-			+0.0f, +0.5f,
-			-1.0f, +0.5f,
-		},
-		{
-			0.0f, 0.0f,
-			0.1f, 0.0f,
-			0.1f, 0.1f,
-			0.0f, 0.1f
-		},
-		{
-			0, 1, 2,
-			2, 3, 0,
-		}
-	};
-
-	Mesh quad2{
-		{
-			+0.0f, -0.5f,
-			+1.0f, -0.5f,
-			+1.0f, +0.5f,
-			+0.0f, +0.5f
-		},
-		{
-			0.0f, 0.0f,
-			0.1f, 0.0f,
-			0.1f, 0.1f,
-			0.0f, 0.1f
-		},
-		{
-			0, 1, 2,
-			2, 3, 0,
-		}
-	};
-
 	GLint compiled;
 	const auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertex_shader, 1, &VertexShaderSource, nullptr);
@@ -124,8 +94,8 @@ int main()
 	const auto test_image = ImageLoader::loadImage("resources/test_block_1x1x1_diffuse.png");
 	const auto test_sprite_strip = SpriteStrip::bind_and_create_sprite_strip(test_image, 256, 256, 24);
 
-	auto test_sprite_frame = test_sprite_strip.return_frame_by_frame_index(5);
-
+	const auto test_sprite_frame = test_sprite_strip->return_frame_by_frame_index(4);
+	SpriteQuad test_sprite(test_sprite_frame);
 
 
 	GLuint VAO;
@@ -133,8 +103,7 @@ int main()
 	glBindVertexArray(VAO);
 
 	Renderer renderer(shader_program);
-	renderer.AddMesh(&quad1);
-	renderer.AddMesh(&quad2);
+	renderer.AddMesh(&test_sprite);
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
@@ -143,9 +112,7 @@ int main()
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		renderer.DrawMesh(&quad1);
-		renderer.DrawMesh(&quad2);
-		
+		renderer.DrawMesh(&test_sprite);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

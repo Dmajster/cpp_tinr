@@ -4,7 +4,7 @@
 #include "Texture.h"
 #include "asset_loading/ImageLoader.h"
 
-struct Sprite
+struct SpriteData
 {
 	Texture* texture;
 	float u_start;
@@ -24,7 +24,7 @@ public:
 		free(texture);
 	}
 
-	static SpriteStrip bind_and_create_sprite_strip(Image t_image, size_t t_frame_width,
+	static SpriteStrip* bind_and_create_sprite_strip(Image t_image, size_t t_frame_width,
 		size_t t_frame_height, size_t t_frame_count)
 	{
 		auto texture = new Texture(GL_TEXTURE_2D);
@@ -33,10 +33,10 @@ public:
 		texture->set_parameter(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		texture->set_parameter(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		return SpriteStrip(texture, t_frame_width, t_frame_height, t_frame_count);
+		return new SpriteStrip(texture, t_frame_width, t_frame_height, t_frame_count);
 	}
 
-	Sprite return_frame_by_frame_index(const size_t t_frame_index) const
+	SpriteData return_frame_by_frame_index(const size_t t_frame_index) const
 	{
 		const size_t strip_columns = texture->texture_width / frame_width;
 		const size_t frame_x = t_frame_index % strip_columns;

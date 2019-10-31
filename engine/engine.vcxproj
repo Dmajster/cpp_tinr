@@ -151,6 +151,7 @@
     <ClInclude Include="source\Buffer.h" />
     <ClInclude Include="source\Mesh.h" />
     <ClInclude Include="source\Renderer.h" />
+    <ClInclude Include="source\SpriteQuad.h" />
     <ClInclude Include="source\SpriteStrip.h" />
     <ClInclude Include="source\Texture.h" />
   </ItemGroup>

@@ -28,7 +28,7 @@ public:
 		glBufferData(buffer_type, buffer_size, data, buffer_usage);
 	}
 
-	void set_space(const size_t size_in_bytes, const GLenum usage = GL_STATIC_DRAW)
+	void set_space(const size_t size_in_bytes, const GLenum usage = GL_DYNAMIC_DRAW)
 	{
 		buffer_size = size_in_bytes;
 		buffer_last = 0;

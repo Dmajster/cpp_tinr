@@ -8,7 +8,7 @@ struct MeshRenderInformation
 {
 	size_t position_start;
 	size_t position_size;
-	
+
 	size_t index_start;
 	size_t index_size;
 
@@ -22,13 +22,19 @@ public:
 	Renderer(GLuint program)
 	{
 		m_indices = new Buffer(GL_ELEMENT_ARRAY_BUFFER);
+		m_indices->bind();
 		m_indices->set_space(1024, GL_STATIC_DRAW);
-		
+		m_indices->unbind();
+
 		m_positions = new Buffer(GL_ARRAY_BUFFER);
+		m_positions->bind();
 		m_positions->set_space(1024, GL_STATIC_DRAW);
+		m_positions->unbind();
 
 		m_uvs = new Buffer(GL_ARRAY_BUFFER);
+		m_positions->bind();
 		m_uvs->set_space(1024, GL_STATIC_DRAW);
+		m_positions->unbind();
 
 		const auto position_attribute = glGetAttribLocation(program, "position");
 		glEnableVertexAttribArray(position_attribute);
@@ -64,22 +70,33 @@ public:
 		};
 
 		m_mesh_data.insert({ t_mesh, mesh_data });
+
+		m_indices->bind();
+		m_indices->set_data(t_mesh->indices.size() * sizeof(int), &t_mesh->indices[0]);
+		//m_indices->push_data(t_mesh->indices.size() * sizeof(int), &t_mesh->indices[0]);
+		m_indices->unbind();
 		
-		m_indices->push_data(t_mesh->indices.size() * sizeof(int), &t_mesh->indices.at(0));
-		m_positions->push_data(t_mesh->positions.size() * sizeof(float), &t_mesh->positions.at(0));
-		m_uvs->push_data(t_mesh->uvs.size() * sizeof(float), &t_mesh->uvs.at(0));
+		m_positions->bind();
+		m_positions->set_data(t_mesh->positions.size() * sizeof(float), &t_mesh->positions[0]);
+		//m_positions->push_data(t_mesh->positions.size() * sizeof(float), &t_mesh->positions[0]);
+		m_positions->unbind();
+		
+		m_uvs->bind();
+		m_uvs->set_data(t_mesh->uvs.size() * sizeof(float), &t_mesh->uvs[0]);
+		//m_uvs->push_data(t_mesh->uvs.size() * sizeof(float), &t_mesh->uvs[0]);
+		m_uvs->unbind();
 	}
 
 	void DrawMesh(Mesh* t_mesh)
 	{
+		m_indices->bind();
 		const auto mesh_data = m_mesh_data.at(t_mesh);
-
-		glDrawElements(GL_TRIANGLES, mesh_data.index_size / sizeof(int) , GL_UNSIGNED_INT, nullptr);
+		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, (void*)0);
 	}
-	
+
 private:
 	std::map<Mesh*, MeshRenderInformation> m_mesh_data;
-	
+
 	Buffer* m_indices;
 	Buffer* m_positions;
 	Buffer* m_uvs;
