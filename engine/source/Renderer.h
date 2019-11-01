@@ -88,8 +88,8 @@ public:
 	{
 		m_indices->bind();
 		const auto mesh_data = m_mesh_data.at(t_mesh);
-		glLineWidth(2.0f);
-		glDrawElements(GL_LINE_STRIP, mesh_data.index_size, GL_UNSIGNED_INT, reinterpret_cast<void*>(mesh_data.index_start));
+		
+		glDrawElements(GL_TRIANGLES, mesh_data.index_size / sizeof(int), GL_UNSIGNED_INT, reinterpret_cast<void*>(mesh_data.index_start));
 	}
 
 private:

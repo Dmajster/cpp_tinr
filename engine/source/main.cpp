@@ -10,6 +10,7 @@
 
 #include "glm/ext.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/euler_angles.hpp"
 
 static void error_callback(int error, const char* description)
 {
@@ -65,8 +66,8 @@ int main()
 		out vec4 outColor;
 		void main()
 		{
-			outColor = vec4(1.0f,1.0f,1.0f,1.0f);
-			//outColor = texture(sprite, frag_uv);
+			//outColor = vec4(1.0f,1.0f,1.0f,1.0f);
+			outColor = texture(sprite, frag_uv);
 		}
 	)GLSL";
 
@@ -109,16 +110,16 @@ int main()
 	Renderer renderer(shader_program);
 	renderer.AddMesh(&test_sprite);
 
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
 
-
-	auto model_rotation = glm::quat(glm::vec3(glm::radians(35.0f), glm::radians(45.0f), 0.0f));
+	glm::quat model_rot_x = glm::angleAxis(glm::radians(45.0f), glm::vec3(1, 0, 0));
+	glm::quat model_rot_y = glm::angleAxis(glm::radians(45.0f), glm::vec3(0, 1, 0));
 	
-	glm::mat4 model = glm::mat4(1.0);
+	glm::mat4 model = glm::mat4(model_rot_y * model_rot_x);
 
 	glm::mat4 view = glm::lookAt(
-		glm::vec3(5.0f, 5.0f, 5.0f),
+		glm::vec3(-5.0f, 5.0f, -5.0f),
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f));
 
