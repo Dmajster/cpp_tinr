@@ -5,9 +5,11 @@
 
 #include "SpriteStrip.h"
 #include "asset_loading/ImageLoader.h"
-#include "Mesh.h"
 #include "Renderer.h"
 #include "SpriteQuad.h"
+
+#include "glm/ext.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 static void error_callback(int error, const char* description)
 {
@@ -41,14 +43,16 @@ int main()
 
 	char const* VertexShaderSource = R"GLSL(
 		#version 150
-		in vec2 position;
+		in vec3 position;
 		in vec2 uv;
 
+		uniform mat4 mvp;
+	
 		out vec2 frag_uv;
 		void main()
 		{
 			frag_uv = uv;
-			gl_Position = vec4(position, 0.0, 1.0);
+			gl_Position = mvp * vec4(position, 1.0);
 		}
 	)GLSL";
 
@@ -61,7 +65,8 @@ int main()
 		out vec4 outColor;
 		void main()
 		{
-			outColor = texture(sprite, frag_uv);
+			outColor = vec4(1.0f,1.0f,1.0f,1.0f);
+			//outColor = texture(sprite, frag_uv);
 		}
 	)GLSL";
 
@@ -94,9 +99,8 @@ int main()
 	const auto test_image = ImageLoader::loadImage("resources/test_block_1x1x1_diffuse.png");
 	const auto test_sprite_strip = SpriteStrip::bind_and_create_sprite_strip(test_image, 256, 256, 24);
 
-	const auto test_sprite_frame = test_sprite_strip->return_frame_by_frame_index(4);
+	const auto test_sprite_frame = test_sprite_strip->return_frame_by_frame_index(0);
 	SpriteQuad test_sprite(test_sprite_frame);
-
 
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
@@ -105,8 +109,25 @@ int main()
 	Renderer renderer(shader_program);
 	renderer.AddMesh(&test_sprite);
 
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND);
+
+
+	auto model_rotation = glm::quat(glm::vec3(glm::radians(35.0f), glm::radians(45.0f), 0.0f));
+	
+	glm::mat4 model = glm::mat4(1.0);
+
+	glm::mat4 view = glm::lookAt(
+		glm::vec3(5.0f, 5.0f, 5.0f),
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f));
+
+	glm::mat4 proj = glm::ortho(-2.0f, 2.f, -2.0f, 2.f, 0.01f, 100.0f);
+
+	glm::mat4 mvp = proj * view * model;
+
+	const size_t mvp_uniform_location = glGetUniformLocation(shader_program, "mvp");
+	glUniformMatrix4fv(mvp_uniform_location, 1, GL_FALSE, value_ptr(mvp));
 
 	while (!glfwWindowShouldClose(window))
 	{

@@ -32,15 +32,15 @@ public:
 		m_positions->unbind();
 
 		m_uvs = new Buffer(GL_ARRAY_BUFFER);
-		m_positions->bind();
+		m_uvs->bind();
 		m_uvs->set_space(1024, GL_STATIC_DRAW);
-		m_positions->unbind();
+		m_uvs->unbind();
 
 		const auto position_attribute = glGetAttribLocation(program, "position");
 		glEnableVertexAttribArray(position_attribute);
 
 		m_positions->bind();
-		glVertexAttribPointer(position_attribute, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+		glVertexAttribPointer(position_attribute, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 		m_positions->unbind();
 
 		const auto uv_attribute = glGetAttribLocation(program, "uv");
@@ -72,18 +72,15 @@ public:
 		m_mesh_data.insert({ t_mesh, mesh_data });
 
 		m_indices->bind();
-		m_indices->set_data(t_mesh->indices.size() * sizeof(int), &t_mesh->indices[0]);
-		//m_indices->push_data(t_mesh->indices.size() * sizeof(int), &t_mesh->indices[0]);
+		m_indices->push_data(t_mesh->indices.size() * sizeof(int), t_mesh->indices.data());
 		m_indices->unbind();
 		
 		m_positions->bind();
-		m_positions->set_data(t_mesh->positions.size() * sizeof(float), &t_mesh->positions[0]);
-		//m_positions->push_data(t_mesh->positions.size() * sizeof(float), &t_mesh->positions[0]);
+		m_positions->push_data(t_mesh->positions.size() * sizeof(float), t_mesh->positions.data());
 		m_positions->unbind();
 		
 		m_uvs->bind();
-		m_uvs->set_data(t_mesh->uvs.size() * sizeof(float), &t_mesh->uvs[0]);
-		//m_uvs->push_data(t_mesh->uvs.size() * sizeof(float), &t_mesh->uvs[0]);
+		m_uvs->push_data(t_mesh->uvs.size() * sizeof(float), t_mesh->uvs.data());
 		m_uvs->unbind();
 	}
 
@@ -91,7 +88,8 @@ public:
 	{
 		m_indices->bind();
 		const auto mesh_data = m_mesh_data.at(t_mesh);
-		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, (void*)0);
+		glLineWidth(2.0f);
+		glDrawElements(GL_LINE_STRIP, mesh_data.index_size, GL_UNSIGNED_INT, reinterpret_cast<void*>(mesh_data.index_start));
 	}
 
 private:

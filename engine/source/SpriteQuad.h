@@ -8,10 +8,10 @@ public:
 	explicit SpriteQuad(const SpriteData t_sprite_data)
 	{
 		positions = {
-			-1.0f, -1.0f,
-			-1.0f, +1.0f,
-			+1.0f, +1.0f,
-			+1.0f, -1.0f,
+			-1.0f, -1.0f, +0.0f,
+			-1.0f, +1.0f, +0.0f,
+			+1.0f, +1.0f, +0.0f,
+			+1.0f, -1.0f, +0.0f,
 		};
 
 		uvs = {
