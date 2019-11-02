@@ -45,35 +45,47 @@ int main()
 
 	char const* VertexShaderSource = R"GLSL(
 		#version 150
-		in vec3 position;
-		in vec3 normal;
-		in vec2 uv;
-
-		uniform mat4 mvp;
 	
+		uniform mat4 m;
+		uniform mat4 vp;
+
+		in vec3 vert_position;
+		in vec3 vert_normal;
+		in vec2 vert_uv;
+	
+		out vec4 frag_position;
+		out vec3 frag_pixel_position;
 		out vec2 frag_uv;
 		out vec3 frag_normal;
 		void main()
 		{
-			frag_uv = uv;
-			frag_normal = normal;
-			gl_Position = mvp * vec4(position, 1.0);
+			frag_pixel_position = vec3(m * vec4(vert_position, 1.0));
+			frag_position = vp * m * vec4(vert_position, 1.0);
+			frag_uv = vert_uv;
+			frag_normal = vert_normal;
+	
+			gl_Position = frag_position;
 		}
 	)GLSL";
 
 	char const* FragmentShaderSource = R"GLSL(
 		#version 150
+		in vec4 frag_position;
+		in vec3 frag_pixel_position;
 		in vec2 frag_uv;
 		in vec3 frag_normal;
 
 		uniform sampler2D sprite;
 	
 		out vec4 outColor;
+	
 		void main()
 		{
-			//outColor = vec4(frag_normal, 1.0f);
-			outColor = vec4(frag_normal, 1.0f) * vec4(1.0f,1.0f,1.0f,1.0f);
-			//outColor = texture(sprite, frag_uv);
+			vec3 norm = normalize(frag_normal);
+			vec3 lightDir = normalize(vec3(5.0f, 10.0f, 5.0f) - frag_pixel_position);  
+			float diffuse = max(dot(norm, lightDir), 0.0);
+	
+			outColor = diffuse * vec4(0.1f, 0.7f, 0.1f, 1.0f);
 		}
 	)GLSL";
 
@@ -128,23 +140,26 @@ int main()
 	//glm::quat model_rot_y = glm::angleAxis(glm::radians(45.0f), glm::vec3(0, 1, 0));
 	//glm::mat4 model = glm::mat4(model_rot_y * model_rot_x);
 
-	glm::mat4 model = glm::mat4(1.0f);
+	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-25, 0, -25));
 	
 	glm::mat4 view = glm::lookAt(
-		glm::vec3(-5.0f, 5.0f, -5.0f),
+		glm::vec3(-10.0f, 10.0f, -10.0f),
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f));
 
 
-	auto size = 10.0f;
+	auto size = 12.0f;
 	auto z_near = 0.01f;
 	auto z_far = 100.0f;
 	glm::mat4 proj = glm::ortho(-size, size, -size, size, z_near, z_far);
 
-	glm::mat4 mvp = proj * view * model;
+	glm::mat4 vp = proj * view;
 
-	const size_t mvp_uniform_location = glGetUniformLocation(shader_program, "mvp");
-	glUniformMatrix4fv(mvp_uniform_location, 1, GL_FALSE, value_ptr(mvp));
+	const size_t m_uniform_location = glGetUniformLocation(shader_program, "m");
+	glUniformMatrix4fv(m_uniform_location, 1, GL_FALSE, value_ptr(model));
+	
+	const size_t vp_uniform_location = glGetUniformLocation(shader_program, "vp");
+	glUniformMatrix4fv(vp_uniform_location, 1, GL_FALSE, value_ptr(vp));
 
 	while (!glfwWindowShouldClose(window))
 	{

@@ -26,39 +26,39 @@ public:
 	{
 		m_indices = new Buffer(GL_ELEMENT_ARRAY_BUFFER);
 		m_indices->bind();
-		m_indices->set_space(65536, GL_STATIC_DRAW);
+		m_indices->set_space(INT32_MAX, GL_STATIC_DRAW);
 		m_indices->unbind();
 
 		m_positions = new Buffer(GL_ARRAY_BUFFER);
 		m_positions->bind();
-		m_positions->set_space(65536, GL_STATIC_DRAW);
+		m_positions->set_space(INT32_MAX, GL_STATIC_DRAW);
 		m_positions->unbind();
 		
 		m_uvs = new Buffer(GL_ARRAY_BUFFER);
 		m_uvs->bind();
-		m_uvs->set_space(65536, GL_STATIC_DRAW);
+		m_uvs->set_space(INT32_MAX, GL_STATIC_DRAW);
 		m_uvs->unbind();
 
 		m_normals = new Buffer(GL_ARRAY_BUFFER);
 		m_normals->bind();
-		m_normals->set_space(65536, GL_STATIC_DRAW);
+		m_normals->set_space(INT32_MAX, GL_STATIC_DRAW);
 		m_normals->unbind();
 		
-		const auto position_attribute = glGetAttribLocation(program, "position");
+		const auto position_attribute = glGetAttribLocation(program, "vert_position");
 		glEnableVertexAttribArray(position_attribute);
 
 		m_positions->bind();
 		glVertexAttribPointer(position_attribute, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 		m_positions->unbind();
 
-		const auto uv_attribute = glGetAttribLocation(program, "uv");
+		const auto uv_attribute = glGetAttribLocation(program, "vert_uv");
 		glEnableVertexAttribArray(uv_attribute);
 
 		m_uvs->bind();
 		glVertexAttribPointer(uv_attribute, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 		m_uvs->unbind();
 
-		const auto normal_attribute = glGetAttribLocation(program, "normal");
+		const auto normal_attribute = glGetAttribLocation(program, "vert_normal");
 		glEnableVertexAttribArray(normal_attribute);
 
 		m_normals->bind();
