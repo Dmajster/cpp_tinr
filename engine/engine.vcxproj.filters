@@ -44,5 +44,8 @@
     <ClInclude Include="source\SpriteQuad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="source\Heightmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

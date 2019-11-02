@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClInclude Include="source\asset_loading\ImageLoader.h" />
     <ClInclude Include="source\Buffer.h" />
+    <ClInclude Include="source\Heightmap.h" />
     <ClInclude Include="source\Mesh.h" />
     <ClInclude Include="source\Renderer.h" />
     <ClInclude Include="source\SpriteQuad.h" />

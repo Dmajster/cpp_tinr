@@ -11,6 +11,7 @@
 #include "glm/ext.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/euler_angles.hpp"
+#include "Heightmap.h"
 
 static void error_callback(int error, const char* description)
 {
@@ -45,14 +46,17 @@ int main()
 	char const* VertexShaderSource = R"GLSL(
 		#version 150
 		in vec3 position;
+		in vec3 normal;
 		in vec2 uv;
 
 		uniform mat4 mvp;
 	
 		out vec2 frag_uv;
+		out vec3 frag_normal;
 		void main()
 		{
 			frag_uv = uv;
+			frag_normal = normal;
 			gl_Position = mvp * vec4(position, 1.0);
 		}
 	)GLSL";
@@ -60,14 +64,16 @@ int main()
 	char const* FragmentShaderSource = R"GLSL(
 		#version 150
 		in vec2 frag_uv;
+		in vec3 frag_normal;
 
 		uniform sampler2D sprite;
 	
 		out vec4 outColor;
 		void main()
 		{
-			//outColor = vec4(1.0f,1.0f,1.0f,1.0f);
-			outColor = texture(sprite, frag_uv);
+			//outColor = vec4(frag_normal, 1.0f);
+			outColor = vec4(frag_normal, 1.0f) * vec4(1.0f,1.0f,1.0f,1.0f);
+			//outColor = texture(sprite, frag_uv);
 		}
 	)GLSL";
 
@@ -103,27 +109,37 @@ int main()
 	const auto test_sprite_frame = test_sprite_strip->return_frame_by_frame_index(0);
 	SpriteQuad test_sprite(test_sprite_frame);
 
+	const Heightmap test_terrain(50, 50);
+	Mesh test_terrain_mesh = test_terrain.create_mesh();
+	
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
 	Renderer renderer(shader_program);
-	renderer.AddMesh(&test_sprite);
+	renderer.AddMesh(&test_terrain_mesh);
+	//renderer.AddMesh(&test_sprite);
 
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-
-	glm::quat model_rot_x = glm::angleAxis(glm::radians(45.0f), glm::vec3(1, 0, 0));
-	glm::quat model_rot_y = glm::angleAxis(glm::radians(45.0f), glm::vec3(0, 1, 0));
 	
-	glm::mat4 model = glm::mat4(model_rot_y * model_rot_x);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND);
 
+	//glm::quat model_rot_x = glm::angleAxis(glm::radians(45.0f), glm::vec3(1, 0, 0));
+	//glm::quat model_rot_y = glm::angleAxis(glm::radians(45.0f), glm::vec3(0, 1, 0));
+	//glm::mat4 model = glm::mat4(model_rot_y * model_rot_x);
+
+	glm::mat4 model = glm::mat4(1.0f);
+	
 	glm::mat4 view = glm::lookAt(
 		glm::vec3(-5.0f, 5.0f, -5.0f),
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f));
 
-	glm::mat4 proj = glm::ortho(-2.0f, 2.f, -2.0f, 2.f, 0.01f, 100.0f);
+
+	auto size = 10.0f;
+	auto z_near = 0.01f;
+	auto z_far = 100.0f;
+	glm::mat4 proj = glm::ortho(-size, size, -size, size, z_near, z_far);
 
 	glm::mat4 mvp = proj * view * model;
 
@@ -134,7 +150,8 @@ int main()
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		renderer.DrawMesh(&test_sprite);
+		renderer.DrawMesh(&test_terrain_mesh);
+		//renderer.DrawMesh(&test_sprite);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

@@ -14,6 +14,9 @@ struct MeshRenderInformation
 
 	size_t uv_start;
 	size_t uv_size;
+	
+	size_t normal_start;
+	size_t normal_size;
 };
 
 class Renderer
@@ -23,19 +26,24 @@ public:
 	{
 		m_indices = new Buffer(GL_ELEMENT_ARRAY_BUFFER);
 		m_indices->bind();
-		m_indices->set_space(1024, GL_STATIC_DRAW);
+		m_indices->set_space(65536, GL_STATIC_DRAW);
 		m_indices->unbind();
 
 		m_positions = new Buffer(GL_ARRAY_BUFFER);
 		m_positions->bind();
-		m_positions->set_space(1024, GL_STATIC_DRAW);
+		m_positions->set_space(65536, GL_STATIC_DRAW);
 		m_positions->unbind();
-
+		
 		m_uvs = new Buffer(GL_ARRAY_BUFFER);
 		m_uvs->bind();
-		m_uvs->set_space(1024, GL_STATIC_DRAW);
+		m_uvs->set_space(65536, GL_STATIC_DRAW);
 		m_uvs->unbind();
 
+		m_normals = new Buffer(GL_ARRAY_BUFFER);
+		m_normals->bind();
+		m_normals->set_space(65536, GL_STATIC_DRAW);
+		m_normals->unbind();
+		
 		const auto position_attribute = glGetAttribLocation(program, "position");
 		glEnableVertexAttribArray(position_attribute);
 
@@ -49,6 +57,13 @@ public:
 		m_uvs->bind();
 		glVertexAttribPointer(uv_attribute, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 		m_uvs->unbind();
+
+		const auto normal_attribute = glGetAttribLocation(program, "normal");
+		glEnableVertexAttribArray(normal_attribute);
+
+		m_normals->bind();
+		glVertexAttribPointer(normal_attribute, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+		m_normals->unbind();
 	}
 
 	~Renderer()
@@ -56,6 +71,7 @@ public:
 		free(m_indices);
 		free(m_positions);
 		free(m_uvs);
+		free(m_normals);
 	}
 
 	void AddMesh(Mesh* t_mesh)
@@ -66,22 +82,28 @@ public:
 			m_indices->buffer_last,
 			t_mesh->indices.size() * sizeof(int),
 			m_uvs->buffer_last,
-			t_mesh->uvs.size() * sizeof(float)
+			t_mesh->uvs.size() * sizeof(float),
+			m_normals->buffer_last,
+			t_mesh->normals.size() * sizeof(float)
 		};
 
 		m_mesh_data.insert({ t_mesh, mesh_data });
 
-		m_indices->bind();
-		m_indices->push_data(t_mesh->indices.size() * sizeof(int), t_mesh->indices.data());
-		m_indices->unbind();
-		
 		m_positions->bind();
 		m_positions->push_data(t_mesh->positions.size() * sizeof(float), t_mesh->positions.data());
 		m_positions->unbind();
 		
+		m_indices->bind();
+		m_indices->push_data(t_mesh->indices.size() * sizeof(int), t_mesh->indices.data());
+		m_indices->unbind();
+		
 		m_uvs->bind();
 		m_uvs->push_data(t_mesh->uvs.size() * sizeof(float), t_mesh->uvs.data());
 		m_uvs->unbind();
+
+		m_normals->bind();
+		m_normals->push_data(t_mesh->normals.size() * sizeof(float), t_mesh->normals.data());
+		m_normals->unbind();
 	}
 
 	void DrawMesh(Mesh* t_mesh)
@@ -97,5 +119,6 @@ private:
 
 	Buffer* m_indices;
 	Buffer* m_positions;
+	Buffer* m_normals;
 	Buffer* m_uvs;
 };
