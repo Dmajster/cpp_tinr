@@ -46,10 +46,16 @@ int main()
 	}
 
 	Shader terrain_vertex_shader(GL_VERTEX_SHADER);
-	terrain_vertex_shader.compile(ShaderLoader::load_shader_source("resources/shaders/terrain_vertex.glsl"));
+	terrain_vertex_shader.compile(ShaderLoader::load_shader_source("resources/shaders/terrain.vert"));
 
 	Shader terrain_fragment_shader(GL_FRAGMENT_SHADER);
-	terrain_fragment_shader.compile(ShaderLoader::load_shader_source("resources/shaders/terrain_fragment.glsl"));
+	terrain_fragment_shader.compile(ShaderLoader::load_shader_source("resources/shaders/terrain.frag"));
+
+	Shader sprite_vertex_shader(GL_VERTEX_SHADER);
+	sprite_vertex_shader.compile(ShaderLoader::load_shader_source("resources/shaders/sprite.vert"));
+
+	Shader sprite_fragment_shader(GL_FRAGMENT_SHADER);
+	sprite_fragment_shader.compile(ShaderLoader::load_shader_source("resources/shaders/sprite.frag"));
 
 	const auto shader_program = glCreateProgram();
 	glAttachShader(shader_program, terrain_vertex_shader.shader_id);

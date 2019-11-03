@@ -33,6 +33,10 @@ public:
 			glGetShaderInfoLog(shader_id, max_length, &max_length, &error_log[0]);
 
 			glDeleteShader(shader_id);
+
+			const std::string error_string(error_log.begin(), error_log.end());
+			
+			std::cout << error_string << std::endl;
 		}
 	}
 

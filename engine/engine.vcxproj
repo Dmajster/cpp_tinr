@@ -147,6 +147,7 @@
     <ClCompile Include="source\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resources\shaders\sprite.frag" />
     <ClInclude Include="source\asset_loading\ImageLoader.h" />
     <ClInclude Include="source\asset_loading\ShaderLoader.h" />
     <ClInclude Include="source\rendering\Buffer.h" />
@@ -159,8 +160,9 @@
     <ClInclude Include="source\rendering\Texture.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="resources\shaders\terrain_fragment.glsl" />
-    <None Include="resources\shaders\terrain_vertex.glsl" />
+    <None Include="resources\shaders\sprite.vert" />
+    <None Include="resources\shaders\terrain.frag" />
+    <None Include="resources\shaders\terrain.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\textures\test_block_1x1x1_diffuse.png" />
