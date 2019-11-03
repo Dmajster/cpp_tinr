@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdlib>
 
-#include "Texture.h"
+#include "../rendering/Texture.h"
 #include "asset_loading/ImageLoader.h"
 
 struct SpriteData

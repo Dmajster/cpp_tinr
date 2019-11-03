@@ -1,5 +1,5 @@
 #pragma once
-#include "Mesh.h"
+#include "../rendering/Mesh.h"
 #include "SpriteStrip.h"
 
 class SpriteQuad : public Mesh

@@ -5,11 +5,11 @@
 
 #include "ImageLoader.h"
 
-Image ImageLoader::loadImage(const char* t_path)
+Image ImageLoader::load_image(const char* t_path)
 {
 	int width, height, channels;
 	stbi_set_flip_vertically_on_load(true);
-	unsigned char* pixel_buffer = stbi_load(t_path,
+	const auto pixel_buffer = stbi_load(t_path,
 		&width,
 		&height,
 		&channels,

@@ -1,5 +1,5 @@
 #pragma once
-#include "Mesh.h"
+#include "../rendering/Mesh.h"
 
 class Heightmap
 {
@@ -48,7 +48,7 @@ public:
 				return_mesh.positions.push_back(heights[vector_to_index(x, z + 1)]);
 				return_mesh.positions.push_back(z + 1);
 
-				const auto size = return_mesh.positions.size()/3;
+				const auto size = return_mesh.positions.size() / 3;
 
 				return_mesh.indices.push_back(size - 4);
 				return_mesh.indices.push_back(size - 3);

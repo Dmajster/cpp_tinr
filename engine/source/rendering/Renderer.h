@@ -74,7 +74,7 @@ public:
 		free(m_normals);
 	}
 
-	void AddMesh(Mesh* t_mesh)
+	void add_mesh(Mesh* t_mesh)
 	{
 		MeshRenderInformation mesh_data = {
 			m_positions->buffer_last,
@@ -106,7 +106,7 @@ public:
 		m_normals->unbind();
 	}
 
-	void DrawMesh(Mesh* t_mesh)
+	void draw_mesh(Mesh* t_mesh)
 	{
 		m_indices->bind();
 		const auto mesh_data = m_mesh_data.at(t_mesh);

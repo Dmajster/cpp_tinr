@@ -148,13 +148,22 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\asset_loading\ImageLoader.h" />
-    <ClInclude Include="source\Buffer.h" />
-    <ClInclude Include="source\Heightmap.h" />
-    <ClInclude Include="source\Mesh.h" />
-    <ClInclude Include="source\Renderer.h" />
-    <ClInclude Include="source\SpriteQuad.h" />
-    <ClInclude Include="source\SpriteStrip.h" />
-    <ClInclude Include="source\Texture.h" />
+    <ClInclude Include="source\asset_loading\ShaderLoader.h" />
+    <ClInclude Include="source\rendering\Buffer.h" />
+    <ClInclude Include="source\primitives\Heightmap.h" />
+    <ClInclude Include="source\rendering\Mesh.h" />
+    <ClInclude Include="source\rendering\Renderer.h" />
+    <ClInclude Include="source\primitives\SpriteQuad.h" />
+    <ClInclude Include="source\primitives\SpriteStrip.h" />
+    <ClInclude Include="source\rendering\Shader.h" />
+    <ClInclude Include="source\rendering\Texture.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\shaders\terrain_fragment.glsl" />
+    <None Include="resources\shaders\terrain_vertex.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\textures\test_block_1x1x1_diffuse.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

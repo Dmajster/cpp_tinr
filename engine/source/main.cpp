@@ -3,15 +3,17 @@
 
 #include <iostream>
 
-#include "SpriteStrip.h"
+#include "primitives/SpriteStrip.h"
 #include "asset_loading/ImageLoader.h"
-#include "Renderer.h"
-#include "SpriteQuad.h"
+#include "rendering/Renderer.h"
+#include "primitives/SpriteQuad.h"
 
 #include "glm/ext.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/euler_angles.hpp"
-#include "Heightmap.h"
+#include "primitives/Heightmap.h"
+#include "rendering/Shader.h"
+#include "asset_loading/ShaderLoader.h"
 
 static void error_callback(int error, const char* description)
 {
@@ -43,79 +45,19 @@ int main()
 		return -1;
 	}
 
-	char const* VertexShaderSource = R"GLSL(
-		#version 150
-	
-		uniform mat4 m;
-		uniform mat4 vp;
+	Shader terrain_vertex_shader(GL_VERTEX_SHADER);
+	terrain_vertex_shader.compile(ShaderLoader::load_shader_source("resources/shaders/terrain_vertex.glsl"));
 
-		in vec3 vert_position;
-		in vec3 vert_normal;
-		in vec2 vert_uv;
-	
-		out vec4 frag_position;
-		out vec3 frag_pixel_position;
-		out vec2 frag_uv;
-		out vec3 frag_normal;
-		void main()
-		{
-			frag_pixel_position = vec3(m * vec4(vert_position, 1.0));
-			frag_position = vp * m * vec4(vert_position, 1.0);
-			frag_uv = vert_uv;
-			frag_normal = vert_normal;
-	
-			gl_Position = frag_position;
-		}
-	)GLSL";
-
-	char const* FragmentShaderSource = R"GLSL(
-		#version 150
-		in vec4 frag_position;
-		in vec3 frag_pixel_position;
-		in vec2 frag_uv;
-		in vec3 frag_normal;
-
-		uniform sampler2D sprite;
-	
-		out vec4 outColor;
-	
-		void main()
-		{
-			vec3 norm = normalize(frag_normal);
-			vec3 lightDir = normalize(vec3(5.0f, 10.0f, 5.0f) - frag_pixel_position);  
-			float diffuse = max(dot(norm, lightDir), 0.0);
-	
-			outColor = diffuse * vec4(0.1f, 0.7f, 0.1f, 1.0f);
-		}
-	)GLSL";
-
-	GLint compiled;
-	const auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertex_shader, 1, &VertexShaderSource, nullptr);
-	glCompileShader(vertex_shader);
-	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &compiled);
-	if (!compiled)
-	{
-		std::cerr << "Failed to compile vertex shader!" << std::endl;
-	}
-
-	const auto fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragment_shader, 1, &FragmentShaderSource, nullptr);
-	glCompileShader(fragment_shader);
-	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &compiled);
-	if (!compiled)
-	{
-		std::cerr << "Failed to compile fragment shader!" << std::endl;
-	}
+	Shader terrain_fragment_shader(GL_FRAGMENT_SHADER);
+	terrain_fragment_shader.compile(ShaderLoader::load_shader_source("resources/shaders/terrain_fragment.glsl"));
 
 	const auto shader_program = glCreateProgram();
-	glAttachShader(shader_program, vertex_shader);
-	glAttachShader(shader_program, fragment_shader);
-	glBindFragDataLocation(shader_program, 0, "outColor");
+	glAttachShader(shader_program, terrain_vertex_shader.shader_id);
+	glAttachShader(shader_program, terrain_fragment_shader.shader_id);
 	glLinkProgram(shader_program);
 	glUseProgram(shader_program);
 
-	const auto test_image = ImageLoader::loadImage("resources/test_block_1x1x1_diffuse.png");
+	const auto test_image = ImageLoader::load_image("resources/textures/test_block_1x1x1_diffuse.png");
 	const auto test_sprite_strip = SpriteStrip::bind_and_create_sprite_strip(test_image, 256, 256, 24);
 
 	const auto test_sprite_frame = test_sprite_strip->return_frame_by_frame_index(0);
@@ -123,16 +65,16 @@ int main()
 
 	const Heightmap test_terrain(50, 50);
 	Mesh test_terrain_mesh = test_terrain.create_mesh();
-	
+
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
 	Renderer renderer(shader_program);
-	renderer.AddMesh(&test_terrain_mesh);
-	//renderer.AddMesh(&test_sprite);
+	renderer.add_mesh(&test_terrain_mesh);
+	renderer.add_mesh(&test_sprite);
 
-	
+
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//glEnable(GL_BLEND);
 
@@ -141,23 +83,23 @@ int main()
 	//glm::mat4 model = glm::mat4(model_rot_y * model_rot_x);
 
 	glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-25, 0, -25));
-	
+
 	glm::mat4 view = glm::lookAt(
-		glm::vec3(-10.0f, 10.0f, -10.0f),
+		glm::vec3(-50.0f, 50.0f, -50.0f),
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f));
 
 
 	auto size = 12.0f;
 	auto z_near = 0.01f;
-	auto z_far = 100.0f;
+	auto z_far = 1000.0f;
 	glm::mat4 proj = glm::ortho(-size, size, -size, size, z_near, z_far);
 
 	glm::mat4 vp = proj * view;
 
 	const size_t m_uniform_location = glGetUniformLocation(shader_program, "m");
 	glUniformMatrix4fv(m_uniform_location, 1, GL_FALSE, value_ptr(model));
-	
+
 	const size_t vp_uniform_location = glGetUniformLocation(shader_program, "vp");
 	glUniformMatrix4fv(vp_uniform_location, 1, GL_FALSE, value_ptr(vp));
 
@@ -165,17 +107,15 @@ int main()
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		renderer.DrawMesh(&test_terrain_mesh);
-		//renderer.DrawMesh(&test_sprite);
+		renderer.draw_mesh(&test_terrain_mesh);
+		renderer.draw_mesh(&test_sprite);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
 	glDeleteProgram(shader_program);
-	glDeleteShader(fragment_shader);
-	glDeleteShader(vertex_shader);
-
+	
 	glDeleteVertexArrays(1, &VAO);
 
 	glfwTerminate();

@@ -23,29 +23,44 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\Texture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="source\asset_loading\ImageLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="source\Mesh.h">
+    <ClInclude Include="source\primitives\Heightmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="source\Renderer.h">
+    <ClInclude Include="source\rendering\Buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="source\Buffer.h">
+    <ClInclude Include="source\rendering\Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="source\SpriteStrip.h">
+    <ClInclude Include="source\rendering\Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="source\SpriteQuad.h">
+    <ClInclude Include="source\primitives\SpriteQuad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="source\Heightmap.h">
+    <ClInclude Include="source\primitives\SpriteStrip.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="source\rendering\Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\rendering\Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\asset_loading\ShaderLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\shaders\terrain_fragment.glsl" />
+    <None Include="resources\shaders\terrain_vertex.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\textures\test_block_1x1x1_diffuse.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
