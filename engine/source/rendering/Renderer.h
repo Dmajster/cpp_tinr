@@ -22,7 +22,7 @@ struct MeshRenderInformation
 class Renderer
 {
 public:
-	Renderer(GLuint program)
+	Renderer()
 	{
 		m_indices = new Buffer(GL_ELEMENT_ARRAY_BUFFER);
 		m_indices->bind();
@@ -44,6 +44,11 @@ public:
 		m_normals->set_space(INT32_MAX, GL_STATIC_DRAW);
 		m_normals->unbind();
 		
+
+	}
+
+	void bind_program(const GLuint program) const
+	{
 		const auto position_attribute = glGetAttribLocation(program, "vert_position");
 		glEnableVertexAttribArray(position_attribute);
 
@@ -66,6 +71,7 @@ public:
 		m_normals->unbind();
 	}
 
+	
 	~Renderer()
 	{
 		free(m_indices);
@@ -106,12 +112,12 @@ public:
 		m_normals->unbind();
 	}
 
-	void draw_mesh(Mesh* t_mesh)
+	void draw_mesh(Mesh* t_mesh, const GLenum t_draw_mode = GL_TRIANGLES )
 	{
 		m_indices->bind();
 		const auto mesh_data = m_mesh_data.at(t_mesh);
 		
-		glDrawElements(GL_TRIANGLES, mesh_data.index_size / sizeof(int), GL_UNSIGNED_INT, reinterpret_cast<void*>(mesh_data.index_start));
+		glDrawElements(t_draw_mode, mesh_data.index_size / sizeof(int), GL_UNSIGNED_INT, reinterpret_cast<void*>(mesh_data.index_start));
 	}
 
 private:

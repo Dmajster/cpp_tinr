@@ -15,5 +15,5 @@ void main()
 	frag_uv = vert_uv;
 	frag_normal = vert_normal;
 	
-	gl_Position = vp * m * vec4(vert_position, 1.0f);
+	gl_Position = vp * m * vec4(vert_position, 1.0);
 }

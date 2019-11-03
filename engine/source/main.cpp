@@ -19,6 +19,8 @@
 int main()
 {
 	Window window{};
+	glClearColor(0.5f, 0.5f, 0.5f, 0.5f);
+	
 	
 	Shader terrain_vertex_shader(ShaderType::vertex);
 	terrain_vertex_shader.compile(ShaderLoader::load_shader_source("resources/shaders/terrain.vert"));
@@ -32,12 +34,18 @@ int main()
 	Shader sprite_fragment_shader(ShaderType::fragment);
 	sprite_fragment_shader.compile(ShaderLoader::load_shader_source("resources/shaders/sprite.frag"));
 
-	const auto shader_program = glCreateProgram();
-	glAttachShader(shader_program, terrain_vertex_shader.shader_id);
-	glAttachShader(shader_program, terrain_fragment_shader.shader_id);
-	glLinkProgram(shader_program);
-	glUseProgram(shader_program);
+	const auto terrain_program = glCreateProgram();
+	glAttachShader(terrain_program, terrain_vertex_shader.shader_id);
+	glAttachShader(terrain_program, terrain_fragment_shader.shader_id);
+	glLinkProgram(terrain_program);
+	glUseProgram(terrain_program);
 
+	const auto sprite_program = glCreateProgram();
+	glAttachShader(sprite_program, sprite_vertex_shader.shader_id);
+	glAttachShader(sprite_program, sprite_fragment_shader.shader_id);
+	glLinkProgram(sprite_program);
+	glUseProgram(sprite_program);
+	
 	const auto test_image = ImageLoader::load_image("resources/textures/test_block_1x1x1_diffuse.png");
 	const auto test_sprite_strip = SpriteStrip::bind_and_create_sprite_strip(test_image, 256, 256, 24);
 
@@ -51,9 +59,12 @@ int main()
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
-	Renderer renderer(shader_program);
+	Renderer renderer{};
 	renderer.add_mesh(&test_terrain_mesh);
 	renderer.add_mesh(&test_sprite);
+
+	//glUseProgram(terrain_program);
+	//renderer.bind_program(terrain_program);
 
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//glEnable(GL_BLEND);
@@ -77,25 +88,47 @@ int main()
 
 	glm::mat4 vp = proj * view;
 
-	const size_t m_uniform_location = glGetUniformLocation(shader_program, "m");
+	glUseProgram(sprite_program);
+	renderer.bind_program(sprite_program);
+	
+	size_t m_uniform_location = glGetUniformLocation(terrain_program, "m");
 	glUniformMatrix4fv(m_uniform_location, 1, GL_FALSE, value_ptr(model));
 
-	const size_t vp_uniform_location = glGetUniformLocation(shader_program, "vp");
+	size_t vp_uniform_location = glGetUniformLocation(terrain_program, "vp");
 	glUniformMatrix4fv(vp_uniform_location, 1, GL_FALSE, value_ptr(vp));
 
+	glUseProgram(terrain_program);
+	renderer.bind_program(terrain_program);
+
+	m_uniform_location = glGetUniformLocation(terrain_program, "m");
+	glUniformMatrix4fv(m_uniform_location, 1, GL_FALSE, value_ptr(model));
+
+	vp_uniform_location = glGetUniformLocation(terrain_program, "vp");
+	glUniformMatrix4fv(vp_uniform_location, 1, GL_FALSE, value_ptr(vp));
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_LINE_SMOOTH);
+	//glEnable(GL_POLYGON_SMOOTH);
+	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+	//glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+	
 	while (!window.should_close())
 	{
 		Window::clear(ClearType::color);
 		Window::clear(ClearType::depth);
 
+		glUseProgram(terrain_program);
 		renderer.draw_mesh(&test_terrain_mesh);
-		renderer.draw_mesh(&test_sprite);
+
+		glUseProgram(sprite_program);
+		renderer.draw_mesh(&test_terrain_mesh, GL_LINES);
 
 		window.swap_buffers();
 		glfwPollEvents();
 	}
 
-	glDeleteProgram(shader_program);
+	glDeleteProgram(terrain_program);
 	
 	glDeleteVertexArrays(1, &VAO);
 
