@@ -2,10 +2,18 @@
 #include <GL/glew.h>
 #include <vector>
 
+enum class ShaderType
+{
+	vertex = GL_VERTEX_SHADER,
+	fragment = GL_FRAGMENT_SHADER
+};
+
 class Shader
 {
 public:
-	explicit Shader(const size_t t_shader_type) : shader_id(glCreateShader(t_shader_type)), shader_type(t_shader_type)
+	explicit Shader(const ShaderType t_shader_type) :
+		shader_id(glCreateShader(static_cast<GLenum>(t_shader_type))),
+		shader_type(static_cast<GLenum>(t_shader_type))
 	{
 	}
 

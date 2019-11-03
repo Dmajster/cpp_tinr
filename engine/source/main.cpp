@@ -1,60 +1,35 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include <iostream>
-
-#include "primitives/SpriteStrip.h"
-#include "asset_loading/ImageLoader.h"
-#include "rendering/Renderer.h"
-#include "primitives/SpriteQuad.h"
-
 #include "glm/ext.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/euler_angles.hpp"
-#include "primitives/Heightmap.h"
-#include "rendering/Shader.h"
-#include "asset_loading/ShaderLoader.h"
 
-static void error_callback(int error, const char* description)
-{
-	fprintf(stderr, "Error: %s\n", description);
-}
+#include "primitives/SpriteStrip.h"
+#include "primitives/Heightmap.h"
+#include "primitives/SpriteQuad.h"
+
+#include "asset_loading/ShaderLoader.h"
+#include "asset_loading/ImageLoader.h"
+
+#include "rendering/Window.h"
+#include "rendering/Shader.h"
+#include "rendering/Renderer.h"
 
 int main()
 {
-	GLFWwindow* window;
-
-	if (!glfwInit())
-		return -1;
-
-	glfwSetErrorCallback(error_callback);
-
-	window = glfwCreateWindow(640, 640, "Hello World", nullptr, nullptr);
-	if (!window)
-	{
-		glfwTerminate();
-		return -1;
-	}
-	glfwMakeContextCurrent(window);
-
-	const GLenum err = glewInit();
-	if (GLEW_OK != err)
-	{
-		std::cerr << "Error: " << glewGetErrorString(err) << std::endl;
-		glfwTerminate();
-		return -1;
-	}
-
-	Shader terrain_vertex_shader(GL_VERTEX_SHADER);
+	Window window{};
+	
+	Shader terrain_vertex_shader(ShaderType::vertex);
 	terrain_vertex_shader.compile(ShaderLoader::load_shader_source("resources/shaders/terrain.vert"));
 
-	Shader terrain_fragment_shader(GL_FRAGMENT_SHADER);
+	Shader terrain_fragment_shader(ShaderType::fragment);
 	terrain_fragment_shader.compile(ShaderLoader::load_shader_source("resources/shaders/terrain.frag"));
 
-	Shader sprite_vertex_shader(GL_VERTEX_SHADER);
+	Shader sprite_vertex_shader(ShaderType::vertex);
 	sprite_vertex_shader.compile(ShaderLoader::load_shader_source("resources/shaders/sprite.vert"));
 
-	Shader sprite_fragment_shader(GL_FRAGMENT_SHADER);
+	Shader sprite_fragment_shader(ShaderType::fragment);
 	sprite_fragment_shader.compile(ShaderLoader::load_shader_source("resources/shaders/sprite.frag"));
 
 	const auto shader_program = glCreateProgram();
@@ -70,7 +45,7 @@ int main()
 	SpriteQuad test_sprite(test_sprite_frame);
 
 	const Heightmap test_terrain(50, 50);
-	Mesh test_terrain_mesh = test_terrain.create_mesh();
+	auto test_terrain_mesh = test_terrain.create_mesh();
 
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
@@ -79,7 +54,6 @@ int main()
 	Renderer renderer(shader_program);
 	renderer.add_mesh(&test_terrain_mesh);
 	renderer.add_mesh(&test_sprite);
-
 
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//glEnable(GL_BLEND);
@@ -109,14 +83,15 @@ int main()
 	const size_t vp_uniform_location = glGetUniformLocation(shader_program, "vp");
 	glUniformMatrix4fv(vp_uniform_location, 1, GL_FALSE, value_ptr(vp));
 
-	while (!glfwWindowShouldClose(window))
+	while (!window.should_close())
 	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		Window::clear(ClearType::color);
+		Window::clear(ClearType::depth);
 
 		renderer.draw_mesh(&test_terrain_mesh);
 		renderer.draw_mesh(&test_sprite);
 
-		glfwSwapBuffers(window);
+		window.swap_buffers();
 		glfwPollEvents();
 	}
 

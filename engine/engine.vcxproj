@@ -158,6 +158,7 @@
     <ClInclude Include="source\primitives\SpriteStrip.h" />
     <ClInclude Include="source\rendering\Shader.h" />
     <ClInclude Include="source\rendering\Texture.h" />
+    <ClInclude Include="source\rendering\Window.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\sprite.vert" />

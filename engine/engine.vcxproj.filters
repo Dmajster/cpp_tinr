@@ -56,6 +56,9 @@
     <ClInclude Include="resources\shaders\sprite.frag">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="source\rendering\Window.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\sprite.vert" />
