@@ -8,5 +8,5 @@ out vec4 out_color;
 
 void main()
 {
-	out_color = texture(sprite, frag_uv);
+	out_color = vec4(0.0,0.0,0.0,1.0);
 }

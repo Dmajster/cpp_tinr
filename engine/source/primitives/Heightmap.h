@@ -11,12 +11,13 @@ public:
 	Heightmap(const size_t t_width, const size_t t_height) : width(t_width), length(t_height)
 	{
 		heights = static_cast<float*>(calloc(t_width * t_height, sizeof(float)));
-		const auto element_count = t_width * t_height;
 
-		for (auto i = 0; i < element_count; i++)
-		{
-			heights[i] = static_cast<float>(rand()) / RAND_MAX;
-		}
+		//const auto element_count = t_width * t_height;
+
+		//for (auto i = 0; i < element_count; i++)
+		//{
+		//	heights[i] = static_cast<float>(rand()) / RAND_MAX;
+		//}
 	}
 
 	Mesh create_mesh() const
@@ -68,21 +69,21 @@ public:
 				auto normal_tris_2 = glm::normalize(glm::cross(p2 - p3, p1 - p3));
 				auto normal_average = glm::normalize((normal_tris_1 + normal_tris_2) / 2.0f);
 				
-				return_mesh.normals.push_back(normal_average.x);
-				return_mesh.normals.push_back(normal_average.y);
-				return_mesh.normals.push_back(normal_average.z);
+				return_mesh.normals.push_back(normal_tris_2.x);
+				return_mesh.normals.push_back(normal_tris_2.y);
+				return_mesh.normals.push_back(normal_tris_2.z);
 
-				return_mesh.normals.push_back(normal_average.x);
-				return_mesh.normals.push_back(normal_average.y);
-				return_mesh.normals.push_back(normal_average.z);
+				return_mesh.normals.push_back(normal_tris_2.x);
+				return_mesh.normals.push_back(normal_tris_2.y);
+				return_mesh.normals.push_back(normal_tris_2.z);
 
-				return_mesh.normals.push_back(normal_average.x);
-				return_mesh.normals.push_back(normal_average.y);
-				return_mesh.normals.push_back(normal_average.z);
+				return_mesh.normals.push_back(normal_tris_2.x);
+				return_mesh.normals.push_back(normal_tris_2.y);
+				return_mesh.normals.push_back(normal_tris_2.z);
 
-				return_mesh.normals.push_back(normal_average.x);
-				return_mesh.normals.push_back(normal_average.y);
-				return_mesh.normals.push_back(normal_average.z);
+				return_mesh.normals.push_back(normal_tris_2.x);
+				return_mesh.normals.push_back(normal_tris_2.y);
+				return_mesh.normals.push_back(normal_tris_2.z);
 			}
 		}
 

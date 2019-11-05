@@ -13,8 +13,7 @@ public:
 		shader_string.reserve(t.tellg());
 		t.seekg(0, std::ios::beg);
 
-		shader_string.assign((std::istreambuf_iterator<char>(t)),
-			std::istreambuf_iterator<char>());
+		shader_string.assign((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 
 		return shader_string;
 	}

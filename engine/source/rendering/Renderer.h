@@ -96,19 +96,19 @@ public:
 		m_mesh_data.insert({ t_mesh, mesh_data });
 
 		m_positions->bind();
-		m_positions->push_data(t_mesh->positions.size() * sizeof(float), t_mesh->positions.data());
+		m_positions->push_data(mesh_data.position_size, t_mesh->positions.data());
 		m_positions->unbind();
 		
 		m_indices->bind();
-		m_indices->push_data(t_mesh->indices.size() * sizeof(int), t_mesh->indices.data());
-		m_indices->unbind();
+		m_indices->push_data(mesh_data.index_size, t_mesh->indices.data());
+		//m_indices->unbind();
 		
 		m_uvs->bind();
-		m_uvs->push_data(t_mesh->uvs.size() * sizeof(float), t_mesh->uvs.data());
+		m_uvs->push_data(mesh_data.uv_size, t_mesh->uvs.data());
 		m_uvs->unbind();
 
 		m_normals->bind();
-		m_normals->push_data(t_mesh->normals.size() * sizeof(float), t_mesh->normals.data());
+		m_normals->push_data(mesh_data.normal_size, t_mesh->normals.data());
 		m_normals->unbind();
 	}
 
@@ -116,8 +116,8 @@ public:
 	{
 		m_indices->bind();
 		const auto mesh_data = m_mesh_data.at(t_mesh);
-		
-		glDrawElements(t_draw_mode, mesh_data.index_size / sizeof(int), GL_UNSIGNED_INT, reinterpret_cast<void*>(mesh_data.index_start));
+
+		glDrawElementsBaseVertex(t_draw_mode, mesh_data.index_size / sizeof(int), GL_UNSIGNED_INT, nullptr, mesh_data.position_start / 3 / sizeof(float) );
 	}
 
 private:

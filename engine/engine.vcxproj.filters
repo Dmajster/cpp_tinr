@@ -59,11 +59,16 @@
     <ClInclude Include="source\rendering\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="source\rendering\Program.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\shaders\sprite.vert" />
     <None Include="resources\shaders\terrain.frag" />
     <None Include="resources\shaders\terrain.vert" />
+    <None Include="resources\shaders\line.frag" />
+    <None Include="resources\shaders\line.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\textures\test_block_1x1x1_diffuse.png">

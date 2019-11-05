@@ -9,7 +9,7 @@ Image ImageLoader::load_image(const char* t_path)
 {
 	int width, height, channels;
 	stbi_set_flip_vertically_on_load(true);
-	const auto pixel_buffer = stbi_load(t_path,
+	unsigned char* pixel_buffer = stbi_load(t_path,
 		&width,
 		&height,
 		&channels,

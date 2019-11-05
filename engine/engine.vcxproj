@@ -153,6 +153,7 @@
     <ClInclude Include="source\rendering\Buffer.h" />
     <ClInclude Include="source\primitives\Heightmap.h" />
     <ClInclude Include="source\rendering\Mesh.h" />
+    <ClInclude Include="source\rendering\Program.h" />
     <ClInclude Include="source\rendering\Renderer.h" />
     <ClInclude Include="source\primitives\SpriteQuad.h" />
     <ClInclude Include="source\primitives\SpriteStrip.h" />
@@ -161,6 +162,8 @@
     <ClInclude Include="source\rendering\Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="resources\shaders\line.frag" />
+    <None Include="resources\shaders\line.vert" />
     <None Include="resources\shaders\sprite.vert" />
     <None Include="resources\shaders\terrain.frag" />
     <None Include="resources\shaders\terrain.vert" />
