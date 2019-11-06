@@ -1,130 +1,71 @@
 #pragma once
-#include <map>
-
 #include "Mesh.h"
 #include "Buffer.h"
+#include <map>
+#include <memory>
 
-struct MeshRenderInformation
+struct RenderMeshData
 {
-	size_t position_start;
-	size_t position_size;
-
-	size_t index_start;
-	size_t index_size;
-
-	size_t uv_start;
-	size_t uv_size;
-	
-	size_t normal_start;
-	size_t normal_size;
+	std::shared_ptr<Buffer> vertices_buffer;
+	std::shared_ptr<Buffer> indices_buffer;
+	std::shared_ptr<std::vector<std::tuple<std::string, size_t>>> layout;
 };
+
 
 class Renderer
 {
 public:
-	Renderer()
-	{
-		m_indices = new Buffer(GL_ELEMENT_ARRAY_BUFFER);
-		m_indices->bind();
-		m_indices->set_space(INT32_MAX, GL_STATIC_DRAW);
-		m_indices->unbind();
-
-		m_positions = new Buffer(GL_ARRAY_BUFFER);
-		m_positions->bind();
-		m_positions->set_space(INT32_MAX, GL_STATIC_DRAW);
-		m_positions->unbind();
-		
-		m_uvs = new Buffer(GL_ARRAY_BUFFER);
-		m_uvs->bind();
-		m_uvs->set_space(INT32_MAX, GL_STATIC_DRAW);
-		m_uvs->unbind();
-
-		m_normals = new Buffer(GL_ARRAY_BUFFER);
-		m_normals->bind();
-		m_normals->set_space(INT32_MAX, GL_STATIC_DRAW);
-		m_normals->unbind();
-		
-
-	}
-
-	void bind_program(const GLuint program) const
-	{
-		const auto position_attribute = glGetAttribLocation(program, "vert_position");
-		glEnableVertexAttribArray(position_attribute);
-
-		m_positions->bind();
-		glVertexAttribPointer(position_attribute, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-		m_positions->unbind();
-
-		const auto uv_attribute = glGetAttribLocation(program, "vert_uv");
-		glEnableVertexAttribArray(uv_attribute);
-
-		m_uvs->bind();
-		glVertexAttribPointer(uv_attribute, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
-		m_uvs->unbind();
-
-		const auto normal_attribute = glGetAttribLocation(program, "vert_normal");
-		glEnableVertexAttribArray(normal_attribute);
-
-		m_normals->bind();
-		glVertexAttribPointer(normal_attribute, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-		m_normals->unbind();
-	}
-
-	
-	~Renderer()
-	{
-		free(m_indices);
-		free(m_positions);
-		free(m_uvs);
-		free(m_normals);
-	}
-
 	void add_mesh(Mesh* t_mesh)
 	{
-		MeshRenderInformation mesh_data = {
-			m_positions->buffer_last,
-			t_mesh->positions.size() * sizeof(float),
-			m_indices->buffer_last,
-			t_mesh->indices.size() * sizeof(int),
-			m_uvs->buffer_last,
-			t_mesh->uvs.size() * sizeof(float),
-			m_normals->buffer_last,
-			t_mesh->normals.size() * sizeof(float)
-		};
+		auto new_mesh_data = std::make_shared<RenderMeshData>(RenderMeshData{
+			std::make_shared<Buffer>(Buffer(GL_ARRAY_BUFFER)),
+			std::make_shared<Buffer>(Buffer(GL_ELEMENT_ARRAY_BUFFER)),
+			std::make_shared<std::vector<std::tuple<std::string, size_t>>>(t_mesh->layout)
+			});
 
-		m_mesh_data.insert({ t_mesh, mesh_data });
+		new_mesh_data->vertices_buffer->bind();
+		new_mesh_data->vertices_buffer->set_data(t_mesh->vertices.size() * sizeof(float), t_mesh->vertices.data());
+		new_mesh_data->indices_buffer->bind();
+		new_mesh_data->indices_buffer->set_data(t_mesh->indices.size() * sizeof(int), t_mesh->indices.data());
 
-		m_positions->bind();
-		m_positions->push_data(mesh_data.position_size, t_mesh->positions.data());
-		m_positions->unbind();
-		
-		m_indices->bind();
-		m_indices->push_data(mesh_data.index_size, t_mesh->indices.data());
-		//m_indices->unbind();
-		
-		m_uvs->bind();
-		m_uvs->push_data(mesh_data.uv_size, t_mesh->uvs.data());
-		m_uvs->unbind();
-
-		m_normals->bind();
-		m_normals->push_data(mesh_data.normal_size, t_mesh->normals.data());
-		m_normals->unbind();
+		m_mesh_data.insert({
+			t_mesh,
+			new_mesh_data
+			});
 	}
 
-	void draw_mesh(Mesh* t_mesh, const GLenum t_draw_mode = GL_TRIANGLES )
+	void render_mesh(Mesh* t_mesh, Program* t_program)
 	{
-		m_indices->bind();
+		t_program->bind();
+		
 		const auto mesh_data = m_mesh_data.at(t_mesh);
+		mesh_data->indices_buffer->bind();
+		mesh_data->vertices_buffer->bind();
 
-		glDrawElementsBaseVertex(t_draw_mode, mesh_data.index_size / sizeof(int), GL_UNSIGNED_INT, nullptr, mesh_data.position_start / 3 / sizeof(float) );
+		auto layout_vector = *mesh_data->layout;
+		auto layout_offset = 0;
+		auto vertex_size = 0;
+		
+		for (auto layout : layout_vector)
+		{
+			const auto attribute_size = std::get<1>(layout);
+			vertex_size += attribute_size * sizeof(float);
+		}
+		
+		for (auto layout : layout_vector)
+		{
+			const auto attribute_name = std::get<0>(layout).c_str();
+			const auto attribute_size = std::get<1>(layout);
+
+			//TODO implement abstraction in Program.h
+			const auto attribute = glGetAttribLocation(t_program->program_id, attribute_name);
+			glEnableVertexAttribArray(attribute);
+			glVertexAttribPointer(attribute, attribute_size, GL_FLOAT, GL_FALSE, vertex_size, reinterpret_cast<void*>(layout_offset));
+			layout_offset += attribute_size * sizeof(float);
+		}
+		
+		glDrawElements(GL_TRIANGLES, mesh_data->indices_buffer->buffer_size / sizeof(int), GL_UNSIGNED_INT, nullptr);
 	}
 
-private:
-	std::map<Mesh*, MeshRenderInformation> m_mesh_data;
-
-	Buffer* m_indices;
-	Buffer* m_positions;
-	Buffer* m_normals;
-	Buffer* m_uvs;
+	std::map<Mesh*, std::shared_ptr<RenderMeshData>> m_mesh_data;
 };
