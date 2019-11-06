@@ -4,6 +4,7 @@
 #include "glm/ext.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/euler_angles.hpp"
+#include "glm/gtx/transform.hpp"
 
 #include "primitives/SpriteStrip.h"
 #include "primitives/SpriteQuad.h"
@@ -44,8 +45,20 @@ int main()
 	renderer.add_mesh(&test_sprite_1);
 	renderer.add_mesh(&test_sprite_2);
 
-	auto m_1 = glm::translate(glm::mat4(1.0f), glm::vec3( 1, 0, 0));
-	auto m_2 = glm::translate(glm::mat4(1.0f), glm::vec3(-1, 0, 0));
+	glm::quat model_rot_x = glm::angleAxis(glm::radians(45.0f), glm::vec3(1, 0, 0));
+	glm::quat model_rot_y = glm::angleAxis(glm::radians(45.0f), glm::vec3(0, 1, 0));
+	glm::mat4 model = glm::mat4(model_rot_y * model_rot_x);
+	
+
+ 	auto m1_t = glm::translate(glm::mat4(1.0), glm::vec3(1, 0, 0));
+	auto m2_t = glm::translate(glm::mat4(1.0), glm::vec3(-1, 0, 0));
+	auto m1_r = model;
+	auto m1_s = glm::mat4(1.0);
+
+	auto m1 = m1_t * m1_r * m1_s;
+	auto m2 = m2_t * m1_r * m1_s;
+	
+
 	
 	const auto view = glm::lookAt(
 		glm::vec3(-50.0f, 50.0f, -50.0f),
@@ -66,8 +79,6 @@ int main()
 	
 	glUniformMatrix4fv(vp_uniform_location, 1, GL_FALSE, value_ptr(vp));
 
-
-
 	glEnable(GL_BLEND);
 
 	glEnable(GL_DEPTH_TEST);
@@ -78,16 +89,15 @@ int main()
 	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 	while (!window.should_close())
 	{
+		//TODO deal with the bit masking somehow. this is horrible.
 		Window::clear(ClearType::color);
 		Window::clear(ClearType::depth);
 		
-		
-		glUniformMatrix4fv(m_uniform_location, 1, GL_FALSE, value_ptr(m_1));
+		glUniformMatrix4fv(m_uniform_location, 1, GL_FALSE, value_ptr(m1));
 		renderer.render_mesh(&test_sprite_1, sprite_program);
 
-		glUniformMatrix4fv(m_uniform_location, 1, GL_FALSE, value_ptr(m_2));
+		glUniformMatrix4fv(m_uniform_location, 1, GL_FALSE, value_ptr(m2));
 		renderer.render_mesh(&test_sprite_2, sprite_program);
-		
 
 		window.swap_buffers();
 		glfwPollEvents();

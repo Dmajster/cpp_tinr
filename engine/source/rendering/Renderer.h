@@ -6,22 +6,21 @@
 
 struct RenderMeshData
 {
-	std::shared_ptr<Buffer> vertices_buffer;
-	std::shared_ptr<Buffer> indices_buffer;
-	std::shared_ptr<std::vector<std::tuple<std::string, size_t>>> layout;
+	std::unique_ptr<Buffer> vertices_buffer;
+	std::unique_ptr<Buffer> indices_buffer;
+	std::unique_ptr<std::vector<std::tuple<std::string, size_t>>> layout;
 };
-
 
 class Renderer
 {
 public:
 	void add_mesh(Mesh* t_mesh)
 	{
-		auto new_mesh_data = std::make_shared<RenderMeshData>(RenderMeshData{
-			std::make_shared<Buffer>(Buffer(GL_ARRAY_BUFFER)),
-			std::make_shared<Buffer>(Buffer(GL_ELEMENT_ARRAY_BUFFER)),
-			std::make_shared<std::vector<std::tuple<std::string, size_t>>>(t_mesh->layout)
-			});
+		auto new_mesh_data = std::make_unique<RenderMeshData>(RenderMeshData{
+			std::make_unique<Buffer>(Buffer(GL_ARRAY_BUFFER)),
+			std::make_unique<Buffer>(Buffer(GL_ELEMENT_ARRAY_BUFFER)),
+			std::make_unique<std::vector<std::tuple<std::string, size_t>>>(t_mesh->layout)
+		});
 
 		new_mesh_data->vertices_buffer->bind();
 		new_mesh_data->vertices_buffer->set_data(t_mesh->vertices.size() * sizeof(float), t_mesh->vertices.data());
@@ -30,28 +29,29 @@ public:
 
 		m_mesh_data.insert({
 			t_mesh,
-			new_mesh_data
-			});
+			std::move(new_mesh_data)
+		});
 	}
 
 	void render_mesh(Mesh* t_mesh, Program* t_program)
 	{
 		t_program->bind();
-		
-		const auto mesh_data = m_mesh_data.at(t_mesh);
+
+		const auto mesh_data = m_mesh_data.at(t_mesh).get();
 		mesh_data->indices_buffer->bind();
 		mesh_data->vertices_buffer->bind();
 
 		auto layout_vector = *mesh_data->layout;
 		auto layout_offset = 0;
 		auto vertex_size = 0;
-		
+
+		//TODO remove, puke :P
 		for (auto layout : layout_vector)
 		{
 			const auto attribute_size = std::get<1>(layout);
 			vertex_size += attribute_size * sizeof(float);
 		}
-		
+
 		for (auto layout : layout_vector)
 		{
 			const auto attribute_name = std::get<0>(layout).c_str();
@@ -63,9 +63,9 @@ public:
 			glVertexAttribPointer(attribute, attribute_size, GL_FLOAT, GL_FALSE, vertex_size, reinterpret_cast<void*>(layout_offset));
 			layout_offset += attribute_size * sizeof(float);
 		}
-		
+
 		glDrawElements(GL_TRIANGLES, mesh_data->indices_buffer->buffer_size / sizeof(int), GL_UNSIGNED_INT, nullptr);
 	}
 
-	std::map<Mesh*, std::shared_ptr<RenderMeshData>> m_mesh_data;
+	std::map<Mesh*, std::unique_ptr<RenderMeshData>> m_mesh_data;
 };

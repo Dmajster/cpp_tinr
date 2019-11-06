@@ -10,8 +10,8 @@ public:
 		vertices = {
 			-1.0f, -1.0f, +0.0f, t_sprite_data.u_start, t_sprite_data.v_start,
 			-1.0f, +1.0f, +0.0f, t_sprite_data.u_start, t_sprite_data.v_end,
-			+1.0f, +1.0f, +0.0f,t_sprite_data.u_end, t_sprite_data.v_end,
-			+1.0f, -1.0f, +0.0f,t_sprite_data.u_end, t_sprite_data.v_start,
+			+1.0f, +1.0f, +0.0f, t_sprite_data.u_end, t_sprite_data.v_end,
+			+1.0f, -1.0f, +0.0f, t_sprite_data.u_end, t_sprite_data.v_start,
 		};
 
 		indices = {
