@@ -33,7 +33,7 @@ public:
 		});
 	}
 
-	void render_mesh(Mesh* t_mesh, Program* t_program)
+	void render_mesh(Mesh* t_mesh, Program* t_program, GLenum t_draw_mode = GL_TRIANGLES)
 	{
 		t_program->bind();
 
@@ -64,7 +64,7 @@ public:
 			layout_offset += attribute_size * sizeof(float);
 		}
 
-		glDrawElements(GL_TRIANGLES, mesh_data->indices_buffer->buffer_size / sizeof(int), GL_UNSIGNED_INT, nullptr);
+		glDrawElements(t_draw_mode, mesh_data->indices_buffer->buffer_size / sizeof(int), GL_UNSIGNED_INT, nullptr);
 	}
 
 	std::map<Mesh*, std::unique_ptr<RenderMeshData>> m_mesh_data;

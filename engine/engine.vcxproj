@@ -150,6 +150,7 @@
     <ClInclude Include="resources\shaders\sprite.frag" />
     <ClInclude Include="source\asset_loading\ImageLoader.h" />
     <ClInclude Include="source\asset_loading\ShaderLoader.h" />
+    <ClInclude Include="source\primitives\Map.h" />
     <ClInclude Include="source\rendering\Buffer.h" />
     <ClInclude Include="source\rendering\Mesh.h" />
     <ClInclude Include="source\rendering\Program.h" />

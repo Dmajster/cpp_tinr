@@ -1,6 +1,5 @@
 #version 150
 
-in vec2 frag_uv;
 in vec3 frag_normal;
 	
 out vec4 out_color;
