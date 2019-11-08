@@ -15,14 +15,27 @@
 #include "rendering/Shader.h"
 #include "rendering/Program.h"
 #include "rendering/Renderer.h"
-#include "primitives/Map.h"
 
-#include "entt/entt.hpp"
+#include "ecs/System.h"
+#include "components/MeshComponent.h"
+#include "components/PositionComponent.h"
+#include "components/OrthoCameraComponent.h"
+
+void render_sprites(const std::shared_ptr<Renderer>& renderer, const std::shared_ptr<Program>& program,  entt::registry& registry)
+{	
+	registry.view<MeshComponent, PositionComponent>().each([renderer, program](MeshComponent& mesh, PositionComponent& position) {
+		program->bind();
+		const size_t m_uniform_location = glGetUniformLocation(program->program_id, "m");
+		glUniformMatrix4fv(m_uniform_location, 1, GL_FALSE, value_ptr(glm::translate(glm::mat4(1.0f), position.position_in_meters )));
+		
+		renderer->render_mesh(mesh.value, program.get());
+	});
+}
 
 int main()
 {
 	Window window{};
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
@@ -31,19 +44,8 @@ int main()
 	auto sprite_program = Program::create_program_from_shaders({
 		Shader(ShaderType::vertex, ShaderLoader::load_shader_source("resources/shaders/sprite.vert")),
 		Shader(ShaderType::fragment, ShaderLoader::load_shader_source("resources/shaders/sprite.frag")),
-		});
+	});
 
-	auto terrain_program = Program::create_program_from_shaders({
-		Shader(ShaderType::vertex, ShaderLoader::load_shader_source("resources/shaders/terrain.vert")),
-		Shader(ShaderType::fragment, ShaderLoader::load_shader_source("resources/shaders/terrain.frag")),
-		});
-
-	auto line_program = Program::create_program_from_shaders({
-		Shader(ShaderType::vertex, ShaderLoader::load_shader_source("resources/shaders/line.vert")),
-		Shader(ShaderType::fragment, ShaderLoader::load_shader_source("resources/shaders/line.frag")),
-		});
-
-	
 	sprite_program->bind();
 
 	auto test_image = ImageLoader::load_image("resources/textures/test_block_1x1x1_diffuse.png");
@@ -55,26 +57,24 @@ int main()
 	const auto test_sprite_frame_2 = test_sprite_strip->return_frame_by_frame_index(16);
 	SpriteQuad test_sprite_2(*test_sprite_frame_2);
 
-	auto test_map = Map(10, 10);
+	entt::registry game_registry;
 
-	Renderer renderer;
-	renderer.add_mesh(&test_map);
-	renderer.add_mesh(&test_sprite_1);
-	renderer.add_mesh(&test_sprite_2);
+	const auto entity_1 = game_registry.create();
+	game_registry.assign<PositionComponent>(entity_1, PositionComponent{  glm::vec3(1, 0, 0) });
+	game_registry.assign<MeshComponent>(entity_1, MeshComponent{ &test_sprite_1 });
 
-	glm::quat model_rot_x = glm::angleAxis(glm::radians(45.0f), glm::vec3(1, 0, 0));
-	glm::quat model_rot_y = glm::angleAxis(glm::radians(45.0f), glm::vec3(0, 1, 0));
-	glm::mat4 model = glm::mat4(model_rot_y * model_rot_x);
+	const auto entity_2 = game_registry.create();
+	game_registry.assign<PositionComponent>(entity_2, PositionComponent{ glm::vec3(-1, 0, 0) });
+	game_registry.assign<MeshComponent>(entity_2, MeshComponent{ &test_sprite_2 });
 
-	auto m_terrain = glm::mat4(1.0);
-	auto m1_t = glm::translate(glm::mat4(1.0), glm::vec3(1, 0, 0));
-	auto m2_t = glm::translate(glm::mat4(1.0), glm::vec3(-1, 0, 0));
-	auto m1_r = model;
-	auto m1_s = glm::mat4(1.0);
-
-	auto m1 = m1_t * m1_r * m1_s;
-	auto m2 = m2_t * m1_r * m1_s;
-
+	const auto camera = game_registry.create();
+	game_registry.assign<PositionComponent>(camera, PositionComponent{ glm::vec3(0, 0, 0) });
+	game_registry.assign<OrthoCameraComponent>(camera, OrthoCameraComponent{ 5.0f, 0.01, 1000.0f });
+	
+	const auto renderer = std::make_shared<Renderer>();
+	renderer->add_mesh(&test_sprite_1);
+	renderer->add_mesh(&test_sprite_2);
+	
 	const auto view = glm::lookAt(
 		glm::vec3(-50.0f, 50.0f, -50.0f),
 		glm::vec3(0.0f, 0.0f, 0.0f),
@@ -85,52 +85,29 @@ int main()
 	const auto z_far = 1000.0f;
 	const auto proj = glm::ortho(-size, size, -size, size, z_near, z_far);
 
-	auto vp = proj * view;
+	const auto vp = proj * view;
 
 	sprite_program->bind();
-	const size_t m_uniform_location = glGetUniformLocation(sprite_program->program_id, "m");
-	const size_t vp_uniform_location = glGetUniformLocation(sprite_program->program_id, "vp");
-	glUniformMatrix4fv(vp_uniform_location, 1, GL_FALSE, value_ptr(vp));
-
-	terrain_program->bind();
-	const size_t m_ter_uniform_location = glGetUniformLocation(terrain_program->program_id, "m");
-	const size_t vp_ter_uniform_location = glGetUniformLocation(terrain_program->program_id, "vp");
-	glUniformMatrix4fv(vp_ter_uniform_location, 1, GL_FALSE, value_ptr(vp));
-
-	line_program->bind();
-	const size_t m_lin_uniform_location = glGetUniformLocation(line_program->program_id, "m");
-	const size_t vp_lin_uniform_location = glGetUniformLocation(line_program->program_id, "vp");
-	glUniformMatrix4fv(vp_lin_uniform_location, 1, GL_FALSE, value_ptr(vp));
+	sprite_program->set_uniform("m", glm::mat4(1.0f));
+	sprite_program->set_uniform("vp", vp);
 
 	glEnable(GL_DEPTH_TEST);
-	
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
+
 	glEnable(GL_LINE_SMOOTH);
 	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 	glLineWidth(1.0f);
-	
+
 	while (!window.should_close())
 	{
 		//TODO deal with the bit masking somehow. this is horrible.
 		Window::clear(ClearType::color);
 		Window::clear(ClearType::depth);
 
-		terrain_program->bind();
-		glUniformMatrix4fv(m_ter_uniform_location, 1, GL_FALSE, value_ptr(m_terrain));
-		renderer.render_mesh(&test_map, terrain_program);
+		render_sprites(renderer, sprite_program, game_registry);
 
-		line_program->bind();
-		glUniformMatrix4fv(m_lin_uniform_location, 1, GL_FALSE, value_ptr(glm::translate(m_terrain, glm::vec3(0, 0.02, 0))));
-		renderer.render_mesh(&test_map, line_program, GL_LINES);
-
-		sprite_program->bind();
-		glUniformMatrix4fv(m_uniform_location, 1, GL_FALSE, value_ptr(m1));
-		renderer.render_mesh(&test_sprite_1, sprite_program);
-
-		glUniformMatrix4fv(m_uniform_location, 1, GL_FALSE, value_ptr(m2));
-		renderer.render_mesh(&test_sprite_2, sprite_program);
 
 		window.swap_buffers();
 		glfwPollEvents();

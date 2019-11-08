@@ -4,7 +4,7 @@
 class Program
 {
 public:
-	Program() : program_id(glCreateProgram())  { }
+	Program() : program_id(glCreateProgram()) { }
 
 	~Program()
 	{
@@ -33,9 +33,9 @@ public:
 
 	const size_t program_id;
 
-	static Program*  create_program_from_shaders(const std::vector<Shader>& t_shaders)
+	static std::shared_ptr<Program>  create_program_from_shaders(const std::vector<Shader>& t_shaders)
 	{
-		const auto new_program = new Program{};
+		auto new_program = std::make_shared<Program>();
 
 		for (const auto& shader : t_shaders)
 		{
@@ -45,5 +45,17 @@ public:
 		new_program->link();
 
 		return new_program;
+	}
+
+	int32_t get_uniform_location(const std::string& t_name) const
+	{
+		return glGetUniformLocation(program_id, t_name.c_str());
+	}
+
+	void set_uniform(const std::string& t_name, const glm::mat4& value) const
+	{
+		const auto uniform_location = get_uniform_location(t_name);
+
+		glUniformMatrix4fv(uniform_location, 1, GL_FALSE, value_ptr(value));
 	}
 };

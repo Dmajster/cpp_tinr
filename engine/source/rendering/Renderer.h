@@ -32,7 +32,7 @@ public:
 			std::move(new_mesh_data)
 		});
 	}
-
+ 
 	void render_mesh(Mesh* t_mesh, Program* t_program, GLenum t_draw_mode = GL_TRIANGLES)
 	{
 		t_program->bind();
