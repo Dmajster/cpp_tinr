@@ -13,10 +13,10 @@ public:
 
 	Map(const size_t t_width, const size_t t_length) : m_width(t_width), m_length(t_length), m_heights(std::vector<float>(m_width* m_length))
 	{
-		m_heights.at(vector_to_index(3,3)) = 1.5f;
-		m_heights.at(vector_to_index(4, 3)) = 1.5f;
-		m_heights.at(vector_to_index(4, 4)) = 1.5f;
-		m_heights.at(vector_to_index(3, 4)) = 1.5f;
+		//m_heights.at(vector_to_index(3,3)) = 1.5f;
+		//m_heights.at(vector_to_index(4, 3)) = 1.5f;
+		//m_heights.at(vector_to_index(4, 4)) = 1.5f;
+		//m_heights.at(vector_to_index(3, 4)) = 1.5f;
 		
 		for (auto z = 0; z < m_length; z++)
 		{

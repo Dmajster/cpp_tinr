@@ -22,20 +22,23 @@
 #include "components/OrthoCameraComponent.h"
 #include "input/Input.h"
 #include "rendering/Material.h"
+#include "primitives/Map.h"
 
-void render_sprites(Program program, entt::registry& registry)
+void render(entt::registry& registry)
 {
 	auto& renderer = registry.ctx<Renderer>();
 
 	auto view = registry.view<RenderComponent, PositionComponent>();
 	for (auto entity : view)
 	{
-		auto& mesh = view.get<RenderComponent>(entity);
+		auto& render_data = view.get<RenderComponent>(entity);
 		auto& position = view.get<PositionComponent>(entity);
+
+		auto& program = render_data.material->program;
 		
-		program.bind();
-		program.set_uniform("m", glm::translate(glm::mat4(1.0f), position.position_in_meters));
-		renderer.render_mesh(mesh.mesh, program);
+		program->bind();
+		program->set_uniform("m", glm::translate(glm::mat4(1.0f), position.position_in_meters));
+		renderer.render_mesh(render_data.mesh,*program);
 	}
 }
 
@@ -71,22 +74,35 @@ int main()
 	glfwSetKeyCallback(window->window, key_callback);
 	glfwSetCursorPosCallback(window->window, cursor_position_callback);
 
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
 	GLuint VAO;
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
+	auto terrain_program = Program::create_program_from_shaders({
+		Shader(ShaderType::vertex, ShaderLoader::load_shader_source("resources/shaders/terrain.vert")),
+		Shader(ShaderType::fragment, ShaderLoader::load_shader_source("resources/shaders/terrain.frag")),
+	});
+
+	auto terrain_material = Material{
+		terrain_program
+	};
+
+	auto terrain_model = std::make_unique<Map>(10, 10);
+	
+	const auto entity_terrain = game_registry.create();
+	game_registry.assign<PositionComponent>(entity_terrain, PositionComponent{ glm::vec3(-5, 0, -5) });
+	game_registry.assign<RenderComponent>(entity_terrain, RenderComponent{ terrain_model.get(), &terrain_material });
+	
 	auto sprite_program = Program::create_program_from_shaders({
 		Shader(ShaderType::vertex, ShaderLoader::load_shader_source("resources/shaders/sprite.vert")),
 		Shader(ShaderType::fragment, ShaderLoader::load_shader_source("resources/shaders/sprite.frag")),
 	});
 
-	auto sprite_material = Material {
+	auto sprite_material = Material{
 		sprite_program,
 	};
-	
-	sprite_program->bind();
 
 	auto test_image = ImageLoader::load_image("resources/textures/test_block_1x1x1_diffuse.png");
 	const auto test_sprite_strip = SpriteStrip::bind_and_create_sprite_strip(&test_image, 256, 256, 24);
@@ -96,15 +112,18 @@ int main()
 
 	const auto test_sprite_frame_2 = test_sprite_strip->return_frame_by_frame_index(16);
 	SpriteQuad test_sprite_2(*test_sprite_frame_2);
-
+	
 	const auto entity_1 = game_registry.create();
-	game_registry.assign<PositionComponent>(entity_1, PositionComponent{ glm::vec3(1, 0, 0) });
+	game_registry.assign<PositionComponent>(entity_1, PositionComponent{ glm::vec3(1, 1, 0) });
 	game_registry.assign<RenderComponent>(entity_1, RenderComponent{ &test_sprite_1, &sprite_material });
 
 	const auto entity_2 = game_registry.create();
-	game_registry.assign<PositionComponent>(entity_2, PositionComponent{ glm::vec3(-1, 0, 0) });
+	game_registry.assign<PositionComponent>(entity_2, PositionComponent{ glm::vec3(-1, 1, 0) });
 	game_registry.assign<RenderComponent>(entity_2, RenderComponent{ &test_sprite_2, &sprite_material });
 
+
+
+	
 	const auto camera = game_registry.create();
 	game_registry.assign<PositionComponent>(camera, PositionComponent{ glm::vec3(0, 0, 0) });
 	game_registry.assign<OrthoCameraComponent>(camera, OrthoCameraComponent{ 5.0f, 0.01, 1000.0f });
@@ -125,6 +144,10 @@ int main()
 	sprite_program->set_uniform("m", glm::mat4(1.0f));
 	sprite_program->set_uniform("vp", vp);
 
+	terrain_program->bind();
+	terrain_program->set_uniform("vp", vp);
+	
+
 	glEnable(GL_DEPTH_TEST);
 
 	glEnable(GL_BLEND);
@@ -140,8 +163,7 @@ int main()
 		Window::clear(ClearType::color);
 		Window::clear(ClearType::depth);
 
-		render_sprites(*sprite_program, game_registry);
-
+		render(game_registry);
 
 		window->swap_buffers();
 		glfwPollEvents();
