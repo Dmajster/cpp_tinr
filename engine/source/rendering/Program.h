@@ -33,9 +33,9 @@ public:
 
 	const size_t program_id;
 
-	static std::shared_ptr<Program>  create_program_from_shaders(const std::vector<Shader>& t_shaders)
+	static std::unique_ptr<Program> create_program_from_shaders(const std::vector<Shader>& t_shaders)
 	{
-		auto new_program = std::make_shared<Program>();
+		auto new_program = std::make_unique<Program>();
 
 		for (const auto& shader : t_shaders)
 		{

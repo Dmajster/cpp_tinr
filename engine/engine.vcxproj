@@ -150,11 +150,13 @@
     <ClInclude Include="resources\shaders\sprite.frag" />
     <ClInclude Include="source\asset_loading\ImageLoader.h" />
     <ClInclude Include="source\asset_loading\ShaderLoader.h" />
-    <ClInclude Include="source\components\MeshComponent.h" />
+    <ClInclude Include="source\components\RenderComponent.h" />
     <ClInclude Include="source\components\OrthoCameraComponent.h" />
     <ClInclude Include="source\components\PositionComponent.h" />
+    <ClInclude Include="source\input\Input.h" />
     <ClInclude Include="source\primitives\Map.h" />
     <ClInclude Include="source\rendering\Buffer.h" />
+    <ClInclude Include="source\rendering\Material.h" />
     <ClInclude Include="source\rendering\Mesh.h" />
     <ClInclude Include="source\rendering\Program.h" />
     <ClInclude Include="source\primitives\SpriteQuad.h" />

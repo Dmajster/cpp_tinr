@@ -17,24 +17,60 @@
 #include "rendering/Renderer.h"
 
 #include "ecs/System.h"
-#include "components/MeshComponent.h"
+#include "components/RenderComponent.h"
 #include "components/PositionComponent.h"
 #include "components/OrthoCameraComponent.h"
+#include "input/Input.h"
+#include "rendering/Material.h"
 
-void render_sprites(const std::shared_ptr<Renderer>& renderer, const std::shared_ptr<Program>& program,  entt::registry& registry)
-{	
-	registry.view<MeshComponent, PositionComponent>().each([renderer, program](MeshComponent& mesh, PositionComponent& position) {
-		program->bind();
-		const size_t m_uniform_location = glGetUniformLocation(program->program_id, "m");
-		glUniformMatrix4fv(m_uniform_location, 1, GL_FALSE, value_ptr(glm::translate(glm::mat4(1.0f), position.position_in_meters )));
+void render_sprites(Program program, entt::registry& registry)
+{
+	auto& renderer = registry.ctx<Renderer>();
+
+	auto view = registry.view<RenderComponent, PositionComponent>();
+	for (auto entity : view)
+	{
+		auto& mesh = view.get<RenderComponent>(entity);
+		auto& position = view.get<PositionComponent>(entity);
 		
-		renderer->render_mesh(mesh.value, program.get());
-	});
+		program.bind();
+		program.set_uniform("m", glm::translate(glm::mat4(1.0f), position.position_in_meters));
+		renderer.render_mesh(mesh.mesh, program);
+	}
+}
+
+void mesh_added(entt::entity entity, entt::registry& registry, RenderComponent& render_component)
+{
+	printf("Mesh added!\n");
+
+	auto &renderer = registry.ctx<Renderer>();
+	renderer.add_mesh(render_component.mesh);
+}
+
+
+void key_callback(GLFWwindow* window, const int key, const int scancode, const int action, int mods)
+{
+	printf("pressed key: %d, action: %d\n", key, action);
+}
+
+static void cursor_position_callback(GLFWwindow* window, const double xpos, const double ypos)
+{
+	printf("mouse position: (%f,%f)\n", xpos, ypos);
 }
 
 int main()
 {
-	Window window{};
+	const auto window = std::make_unique<Window>();
+	const auto input = std::make_unique<Input>(*window);
+	const auto renderer = std::make_unique<Renderer>();
+
+	entt::registry game_registry;
+	game_registry.set<Renderer>(*renderer);
+	game_registry.on_construct<RenderComponent>().connect<&mesh_added>();
+	
+	glfwSetKeyCallback(window->window, key_callback);
+	glfwSetCursorPosCallback(window->window, cursor_position_callback);
+
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
 	GLuint VAO;
@@ -46,6 +82,10 @@ int main()
 		Shader(ShaderType::fragment, ShaderLoader::load_shader_source("resources/shaders/sprite.frag")),
 	});
 
+	auto sprite_material = Material {
+		sprite_program,
+	};
+	
 	sprite_program->bind();
 
 	auto test_image = ImageLoader::load_image("resources/textures/test_block_1x1x1_diffuse.png");
@@ -57,24 +97,18 @@ int main()
 	const auto test_sprite_frame_2 = test_sprite_strip->return_frame_by_frame_index(16);
 	SpriteQuad test_sprite_2(*test_sprite_frame_2);
 
-	entt::registry game_registry;
-
 	const auto entity_1 = game_registry.create();
-	game_registry.assign<PositionComponent>(entity_1, PositionComponent{  glm::vec3(1, 0, 0) });
-	game_registry.assign<MeshComponent>(entity_1, MeshComponent{ &test_sprite_1 });
+	game_registry.assign<PositionComponent>(entity_1, PositionComponent{ glm::vec3(1, 0, 0) });
+	game_registry.assign<RenderComponent>(entity_1, RenderComponent{ &test_sprite_1, &sprite_material });
 
 	const auto entity_2 = game_registry.create();
 	game_registry.assign<PositionComponent>(entity_2, PositionComponent{ glm::vec3(-1, 0, 0) });
-	game_registry.assign<MeshComponent>(entity_2, MeshComponent{ &test_sprite_2 });
+	game_registry.assign<RenderComponent>(entity_2, RenderComponent{ &test_sprite_2, &sprite_material });
 
 	const auto camera = game_registry.create();
 	game_registry.assign<PositionComponent>(camera, PositionComponent{ glm::vec3(0, 0, 0) });
 	game_registry.assign<OrthoCameraComponent>(camera, OrthoCameraComponent{ 5.0f, 0.01, 1000.0f });
-	
-	const auto renderer = std::make_shared<Renderer>();
-	renderer->add_mesh(&test_sprite_1);
-	renderer->add_mesh(&test_sprite_2);
-	
+
 	const auto view = glm::lookAt(
 		glm::vec3(-50.0f, 50.0f, -50.0f),
 		glm::vec3(0.0f, 0.0f, 0.0f),
@@ -100,16 +134,16 @@ int main()
 	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 	glLineWidth(1.0f);
 
-	while (!window.should_close())
+	while (!window->should_close())
 	{
 		//TODO deal with the bit masking somehow. this is horrible.
 		Window::clear(ClearType::color);
 		Window::clear(ClearType::depth);
 
-		render_sprites(renderer, sprite_program, game_registry);
+		render_sprites(*sprite_program, game_registry);
 
 
-		window.swap_buffers();
+		window->swap_buffers();
 		glfwPollEvents();
 	}
 

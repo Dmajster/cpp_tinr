@@ -2,30 +2,29 @@
 #include "Mesh.h"
 #include "Buffer.h"
 #include <map>
-#include <memory>
 
 struct RenderMeshData
 {
-	std::unique_ptr<Buffer> vertices_buffer;
-	std::unique_ptr<Buffer> indices_buffer;
-	std::unique_ptr<std::vector<std::tuple<std::string, size_t>>> layout;
+	Buffer vertices_buffer;
+	Buffer indices_buffer;
+	std::vector<std::tuple<std::string, size_t>> layout;
 };
 
 class Renderer
 {
-public:
+public:	
 	void add_mesh(Mesh* t_mesh)
 	{
-		auto new_mesh_data = std::make_unique<RenderMeshData>(RenderMeshData{
-			std::make_unique<Buffer>(Buffer(GL_ARRAY_BUFFER)),
-			std::make_unique<Buffer>(Buffer(GL_ELEMENT_ARRAY_BUFFER)),
-			std::make_unique<std::vector<std::tuple<std::string, size_t>>>(t_mesh->layout)
-		});
+		auto new_mesh_data = RenderMeshData{
+			Buffer(GL_ARRAY_BUFFER),
+			Buffer(GL_ELEMENT_ARRAY_BUFFER),
+			std::vector<std::tuple<std::string, size_t>>(t_mesh->layout)
+		};
 
-		new_mesh_data->vertices_buffer->bind();
-		new_mesh_data->vertices_buffer->set_data(t_mesh->vertices.size() * sizeof(float), t_mesh->vertices.data());
-		new_mesh_data->indices_buffer->bind();
-		new_mesh_data->indices_buffer->set_data(t_mesh->indices.size() * sizeof(int), t_mesh->indices.data());
+		new_mesh_data.vertices_buffer.bind();
+		new_mesh_data.vertices_buffer.set_data(t_mesh->vertices.size() * sizeof(float), t_mesh->vertices.data());
+		new_mesh_data.indices_buffer.bind();
+		new_mesh_data.indices_buffer.set_data(t_mesh->indices.size() * sizeof(int), t_mesh->indices.data());
 
 		m_mesh_data.insert({
 			t_mesh,
@@ -33,15 +32,15 @@ public:
 		});
 	}
  
-	void render_mesh(Mesh* t_mesh, Program* t_program, GLenum t_draw_mode = GL_TRIANGLES)
+	void render_mesh(Mesh* t_mesh, Program& t_program, GLenum t_draw_mode = GL_TRIANGLES)
 	{
-		t_program->bind();
+		t_program.bind();
 
-		const auto mesh_data = m_mesh_data.at(t_mesh).get();
-		mesh_data->indices_buffer->bind();
-		mesh_data->vertices_buffer->bind();
+		const auto mesh_data = m_mesh_data.at(t_mesh);
+		mesh_data.indices_buffer.bind();
+		mesh_data.vertices_buffer.bind();
 
-		auto layout_vector = *mesh_data->layout;
+		auto layout_vector = mesh_data.layout;
 		auto layout_offset = 0;
 		auto vertex_size = 0;
 
@@ -58,14 +57,14 @@ public:
 			const auto attribute_size = std::get<1>(layout);
 
 			//TODO implement abstraction in Program.h
-			const auto attribute = glGetAttribLocation(t_program->program_id, attribute_name);
+			const auto attribute = glGetAttribLocation(t_program.program_id, attribute_name);
 			glEnableVertexAttribArray(attribute);
 			glVertexAttribPointer(attribute, attribute_size, GL_FLOAT, GL_FALSE, vertex_size, reinterpret_cast<void*>(layout_offset));
 			layout_offset += attribute_size * sizeof(float);
 		}
 
-		glDrawElements(t_draw_mode, mesh_data->indices_buffer->buffer_size / sizeof(int), GL_UNSIGNED_INT, nullptr);
+		glDrawElements(t_draw_mode, mesh_data.indices_buffer.buffer_size / sizeof(int), GL_UNSIGNED_INT, nullptr);
 	}
 
-	std::map<Mesh*, std::unique_ptr<RenderMeshData>> m_mesh_data;
+	std::map<Mesh*, RenderMeshData> m_mesh_data;
 };

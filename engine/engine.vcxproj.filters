@@ -62,13 +62,19 @@
     <ClInclude Include="source\primitives\Map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="source\components\MeshComponent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="source\components\PositionComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\components\OrthoCameraComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\input\Input.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\rendering\Material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\components\RenderComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
